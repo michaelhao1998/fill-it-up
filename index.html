@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="data:,">
-<title>fill it up · 五关试玩 v5</title>
+<title>fill it up · 五关试玩 v6</title>
 <style>
 :root{--page:#e8f2f8;--paper:#f8fcff;--ink:#244b61;--muted:#688493;--line:#cedfe8;--accent:#327fa6;--soft:#e8f4fb;--frame:#c1d8e6;--dry:#bad6e6;--dry-edge:#9dbfd3;--wet:#f1fcff;--wet-edge:#9cd9ed;--beam:#65c9ed;--beam-core:#e9fcff;--block-bg:#d7e7f0;--block-edge:#97b5c9;--mono:'IBM Plex Mono',Consolas,'Courier New',monospace}
 *{box-sizing:border-box}[hidden]{display:none!important}html{min-height:100%;background:var(--page)}
@@ -58,6 +58,26 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
 @media(max-width:480px){body{padding:0;align-items:flex-start;background:var(--paper)}html{background:var(--paper)}.app{width:414px;border:0;border-radius:0;box-shadow:none;padding:16px 18px 14px}.brand{font-size:22px}.room{padding:10px 11px 12px}.objective{margin-top:13px}.level-tabs{margin-top:12px}}
 @media(max-height:900px) and (max-width:480px){.app{padding-top:12px;padding-bottom:10px}.level-tabs{margin-top:9px}.objective{margin-top:10px;margin-bottom:9px}.resources{margin-bottom:9px;min-height:39px}.emitter-slot{height:35px}.room{padding-top:8px;padding-bottom:9px}.legend{margin-top:8px;gap:5px 10px}.coach{margin-top:8px;min-height:44px;padding:7px 9px;line-height:1.55}.actions{margin-top:8px}.action{height:40px}.bottom{margin-top:9px}.mechanics{margin-top:6px;padding-top:5px;line-height:1.45}.protection-status{margin-top:6px;padding:5px 7px}.app[data-theme="stage"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="stage"] .double-status{margin-top:6px;padding:4px 7px}.app[data-theme="stage"] .coach{line-height:1.45}.app[data-theme="museum"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="museum"] .coach{line-height:1.45}.app[data-theme="workshop"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="workshop"] .coach{line-height:1.45}.level-tab{height:34px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.modal::backdrop{backdrop-filter:none}}
+
+/* 新机制首次出现引导（参考 Solitaire Flow 补牌区引导：压暗 + 金框呼吸 + 气泡 + 知道了） */
+#guide{position:absolute;inset:0;z-index:60;pointer-events:none;display:none}
+#guide.on{display:block}
+#gMask{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#gMask .shade{fill:rgba(20,22,28,.48);fill-rule:evenodd}
+#gMask .ring{fill:none;stroke:#f0b400;stroke-width:3;animation:gring 1s ease-in-out infinite}
+@keyframes gring{50%{stroke-width:6;stroke-opacity:.55}}
+#guide .bub{position:absolute;left:12px;right:12px;background:#fffdf3;border:2px solid #f0b400;border-radius:12px;padding:10px 12px 11px;font-size:12.5px;line-height:1.6;color:#1f2329;pointer-events:auto;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+#guide .bub b{color:#8a5a00}
+#guide .bub .tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#d98a00;border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px}
+#guide .bub:after{content:"";position:absolute;left:var(--ax,50%);border:8px solid transparent}
+#guide .bub.below:after{top:-10px;border-top:0;border-bottom:9px solid #f0b400}
+#guide .bub.above:after{bottom:-10px;border-bottom:0;border-top:9px solid #f0b400}
+#guide .bub .gb{float:right;margin:0 0 4px 8px;height:28px;padding:0 12px;border-radius:8px;border:1px solid #d9a000;background:#f0b400;color:#3b2a00;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#guide .cmp{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;gap:4px 8px;margin:8px 0 2px;font-size:11px;color:#6b5a2a}
+#guide .cmp svg{width:100%;height:auto;display:block}
+#guide .cmp .new{color:#8a5a00;font-weight:700}
+.guide-replay{margin-top:6px;border:1px solid #e0b64a;background:#fff8e1;color:#8a5a00;border-radius:7px;padding:3px 10px;font-size:11px;font-family:inherit;cursor:pointer}
+.emitter-slot{position:relative}.app[data-theme="workshop"] .emitter-slot:after{content:attr(data-range);position:absolute;right:-4px;top:-5px;min-width:14px;height:14px;border-radius:7px;background:#d98a00;color:#fff;font:700 9px/14px var(--mono);text-align:center}
 </style>
 </head>
 <body>
@@ -76,9 +96,10 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
 <div class="win-ribbon" id="win-ribbon"><span id="ribbon-text">海面已全部冻结</span><button id="ribbon-next">去花园</button></div>
 <div class="coach" id="coach" role="status" aria-live="polite"><svg class="coach-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor"/></svg><div class="coach-copy" id="coach-copy">点水面放喷冷桩，再点收回。冷束只沿横向、纵向前进，遇冰山停止。</div></div>
 <div class="actions"><button class="action" id="undo" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 10l5 5M4 10h10a6 6 0 0 1 0 12" transform="translate(0 -2)" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>撤销</button><button class="action" id="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a8 8 0 1 0 1 7M19 3v5h-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>重置</button><button class="action primary" id="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16m-5-7-3-1 3-1m10 2 3-1-3-1M11 7l1-3 1 3m-2 10 1 3 1-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="hint-label">提示</span></button></div>
-<footer class="bottom"><span class="mono">v5 · 05 levels · offline</span><button id="scope">本版规则</button><span>无计时 · 可反复调整</span></footer>
+<footer class="bottom"><span class="mono">v6 · 05 levels · offline</span><button id="scope">本版规则</button><span>无计时 · 可反复调整</span></footer>
 <div id="fatal" hidden class="error" role="alert"></div>
 <noscript><div class="error">试玩需要浏览器开启 JavaScript；所有资源已内嵌，不需要联网。</div></noscript>
+<div id="guide" aria-hidden="true"><svg id="gMask" xmlns="http://www.w3.org/2000/svg"></svg><div class="bub" id="gBub" role="dialog" aria-label="新机制引导"></div></div>
 </main>
 <dialog class="modal" id="modal" aria-labelledby="modal-title"><div class="modal-content"><button class="modal-close" id="modal-close" aria-label="关闭弹窗">×</button><div id="modal-art"></div><h2 id="modal-title"></h2><p class="subtitle" id="modal-subtitle"></p><div class="body" id="modal-body"></div><div class="button-row" id="modal-actions"></div><p class="fine" id="modal-fine"></p></div></dialog>
 <script id="level-data" type="application/json">
@@ -400,7 +421,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    mechanics:'<details class="stage-tutorial"><summary>C3 玻璃展柜 + G1 布控规则（展开说明）</summary><p><b>① 玻璃展柜 C3。</b> 不能安装监控柱；视线能穿过它继续前进，遇展墙才停；展柜本身也是监控目标，必须被看到。</p><p><b>② G1 不得互拍。</b> 任何监控柱都不能出现在另一台的监控画面里（同排或同列、中间没有展墙即算，单向拍到也算）。普通地面被多台交叉覆盖没关系。</p></details>',
    vars:{page:'#eef1f2',paper:'#fbfcfc',ink:'#2f4a55',muted:'#6f8189',line:'#d8e0e3',accent:'#2b8aa3',soft:'#eef5f7',frame:'#cfd8dc',dry:'#e9e5df','dry-edge':'#cfc8be',wet:'#e3f6f8','wet-edge':'#8fd0dc',beam:'#2fb3cf','beam-core':'#effcff','block-bg':'#e4e6e8','block-edge':'#aeb6bb'}},
   workshop:{name:'车间喷涂',device:'喷涂柱',unit:'台',beam:'漆雾',target:'水泥地',dry:'未喷水泥地',wet:'已喷漆面',coverageLabel:'地面已喷涂',goal:'喷满全部地面，禁漆区保持干净',block:'挡漆板',complete:'图案完成，车间作业完成',winTitle:'图案完成，车间作业完成',winSub:'29 格地面全部喷上漆面，禁漆区一点没沾。',emitter:workshopEmitter,obstacle:workshopBlock,icon:workshopEmitter,terrain:workshopTerrain,art:workshopArt,
-   mechanics:'<details class="stage-tutorial"><summary>E2 短喷嘴 + C1 禁漆区（展开说明）</summary><p><b>① E2 短喷嘴。</b> 每台只喷自身和四个方向各 2 格，遇挡漆板或边界提前停；长通道要分段喷。线头的短横线和淡出圆点表示“射程到此为止”。</p><p><b>② C1 禁漆区（复习花园关的禁覆盖）。</b> 不能放、不能被喷到，但漆雾会穿过它；射程短反而能贴着禁漆区放——只要禁漆区在 2 格之外。</p></details>',
+   mechanics:'<details class="stage-tutorial"><summary>E2 短喷嘴 + C1 禁漆区（展开说明）</summary><p><b>① E2 短喷嘴。</b> 每台只喷自身和四个方向各 2 格，遇挡漆板或边界提前停；长通道要分段喷。线头的短横线和淡出圆点表示“射程到此为止”。</p><button type="button" class="guide-replay" data-guide-replay>重看短喷嘴引导</button><p><b>② C1 禁漆区（复习花园关的禁覆盖）。</b> 不能放、不能被喷到，但漆雾会穿过它；射程短反而能贴着禁漆区放——只要禁漆区在 2 格之外。</p></details>',
    c1:{
     badge:'禁漆',art:tapeArt+'<span class="forbidden-badge" aria-hidden="true">禁漆</span>',legend:'C1 禁漆区',
     label:' C1 禁覆盖格，禁漆区，不能喷到且不能放设备，漆雾可穿过',
@@ -462,9 +483,9 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    return '<button class="tile'+cls+'" data-cell="'+i+'" aria-label="'+label+'">'+art+'</button>';
   }).join('')+'<svg class="beam-layer" id="beams" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>';
   $('board').setAttribute('aria-label',L.name+' '+L.width+'乘'+L.height+'棋盘');
-  $('inventory').innerHTML=Array.from({length:L.budget},()=>'<span class="emitter-slot">'+T.emitter+'</span>').join('');
+  $('inventory').innerHTML=Array.from({length:L.budget},()=>'<span class="emitter-slot"'+(L.range?' data-range="'+L.range+'"':'')+'>'+T.emitter+'</span>').join('');
   $('resources').setAttribute('aria-label',T.device+'预算和目标覆盖进度');$('budget-label').textContent='剩余'+T.device;$('coverage-label').textContent=T.coverageLabel;
-  $('objective-title').textContent=L.title;$('objective-sub').textContent='用 '+L.budget+' '+T.unit+T.device+'，'+T.goal+'。';$('room-label').textContent=L.name;$('room-size').textContent=L.width+' × '+L.height;$('target-total').textContent=' / '+L.targets.length;$('budget-total').textContent=' / '+L.budget;
+  $('objective-title').textContent=L.title;$('objective-sub').textContent=L.range?'用 '+L.budget+' '+T.unit+'短喷嘴'+T.device+'（每个方向只喷 '+L.range+' 格），'+T.goal+'。':'用 '+L.budget+' '+T.unit+T.device+'，'+T.goal+'。';$('room-label').textContent=L.name;$('room-size').textContent=L.width+' × '+L.height+(L.range?' · 射程 '+L.range:'');$('target-total').textContent=' / '+L.targets.length;$('budget-total').textContent=' / '+L.budget;
   $('legend-dry').textContent=T.dry;$('legend-wet').textContent=T.wet;$('legend-c1').hidden=L.forbidden.length===0;$('legend-c1-text').textContent=T.c1?T.c1.legend:'C1 禁覆盖格';$('legend-e2').hidden=!L.range;$('legend-c2').hidden=L.doubles.length===0;$('legend-r1').hidden=L.mirrors.length===0;$('legend-c3').hidden=L.noPlace.length===0;$('legend-g1').hidden=!L.g1;$('mechanics').innerHTML=T.mechanics;$('protection-status').hidden=L.forbidden.length===0;$('double-status').hidden=L.doubles.length===0;$('g1-status').hidden=!L.g1;
  }
  function drawBeams(){
@@ -554,7 +575,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   else sayCoverage(text,emitters.length===levels[active].budget?'warn':'');
  }
  function tap(i){
-  const L=levels[active],T=theme(),s=states[active],t=E.toggle(L,s.lamps,i);
+  hideGuide();const L=levels[active],T=theme(),s=states[active],t=E.toggle(L,s.lamps,i);
   if(t.type==='wall'){sayCoverage(coord(i)+'是C0 阻挡格：'+T.block+'不能放设备，'+T.beam+'也不能穿过。','warn');return;}
   if(t.type==='forbidden'){sayCoverage(coord(i)+(T.c1?T.c1.tap:'是C1 禁覆盖格：仙人掌保护区不能放设备，必须保持干燥；水束会穿过它继续向后。'),'warn');return;}
   if(t.type==='noplace'){
@@ -571,20 +592,72 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   const cov=E.coverage(L,t.lamps);let text=t.type==='remove'?'已收回'+coord(i)+'的'+T.device+'，覆盖已重新计算。':'已放在'+coord(i)+'。'+(L.range?T.beam+'向四个方向各喷 '+L.range+' 格就停，遇'+T.block+'提前停止。':T.beam+'沿横纵延伸，'+(L.mirrors.length?'遇固定 / 镜面转向，':'')+(L.noPlace.length?'穿过玻璃展柜，':'')+'遇'+T.block+'停止。');
   if(t.lamps.length===L.budget&&cov.covered<cov.total)text=T.device+'用完了，还有 '+(cov.total-cov.covered)+' 格未覆盖。可点设备收回，或撤销再试。';
   commit(t.lamps,text,t.type,i);
+  if(t.type==='place'&&L.range&&!guide.firstShown&&!states[active].won)requestAnimationFrame(()=>showFirstGuide(i));
  }
+
+ // ===== 新机制首次出现引导：进入射程关时框出预算区并对比射程；放下第一台后框出它的实际喷涂范围 =====
+ const guide={on:false,step:null,introShown:false,firstShown:false,anchor:null};
+ function relRect(el){const a=$('app').getBoundingClientRect(),r=el.getBoundingClientRect();return {l:r.left-a.left,t:r.top-a.top,w:r.width,h:r.height};}
+ function unionRect(list){const l=Math.min(...list.map(r=>r.l)),t=Math.min(...list.map(r=>r.t)),rr=Math.max(...list.map(r=>r.l+r.w)),b=Math.max(...list.map(r=>r.t+r.h));return {l,t,w:rr-l,h:b-t};}
+ function rangeRow(range,limited){
+  // 7 格示意条：中间是设备；limited=true 时只亮左右各 range 格，最外侧暗 + 截止短线
+  const n=7,c=3,w=36,g=4,parts=[];
+  for(let k=0;k<n;k++){const lit=!limited||Math.abs(k-c)<=range,x=k*(w+g);
+   parts.push('<rect x="'+x+'" y="4" width="'+w+'" height="26" rx="5" fill="'+(lit?'#ffd9b8':'#e4e1da')+'" stroke="'+(lit?'#e59a5c':'#cfcac0')+'"/>');}
+  const cx=c*(w+g)+w/2,left=limited?(c-range)*(w+g)+6:6,right=limited?(c+range)*(w+g)+w-6:n*(w+g)-g-6;
+  parts.push('<path d="M'+left+' 17H'+right+'" stroke="#e07a2e" stroke-width="3" stroke-linecap="round"/>');
+  if(limited)for(const x of [(c-range)*(w+g)-g/2,(c+range+1)*(w+g)-g/2])parts.push('<path d="M'+x+' 6V28" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/>');
+  parts.push('<circle cx="'+cx+'" cy="17" r="10" fill="#fff" stroke="#b5651d" stroke-width="2.5"/><path d="M'+(cx-5)+' 17H'+(cx+5)+'M'+cx+' 12V22" stroke="#b5651d" stroke-width="2"/>');
+  return '<svg viewBox="0 0 '+(n*(w+g)-g)+' 34" aria-hidden="true">'+parts.join('')+'</svg>';
+ }
+ function rr(r,rad){const x=r.l,y=r.t,w=r.w,hh=r.h,k=Math.min(rad,w/2,hh/2);return 'M'+(x+k)+' '+y+'H'+(x+w-k)+'Q'+(x+w)+' '+y+' '+(x+w)+' '+(y+k)+'V'+(y+hh-k)+'Q'+(x+w)+' '+(y+hh)+' '+(x+w-k)+' '+(y+hh)+'H'+(x+k)+'Q'+x+' '+(y+hh)+' '+x+' '+(y+hh-k)+'V'+(y+k)+'Q'+x+' '+y+' '+(x+k)+' '+y+'Z';}
+ function placeGuide(rects,html,ax,pad=5){
+  // rects：一个或多个需要“亮出来”的区域；其余压暗。多块时逐格镂空并逐格描金边。
+  const app=$('app'),W=app.clientWidth,H=app.clientHeight;
+  const holes=rects.map(r=>({l:r.l-pad,t:r.t-pad,w:r.w+pad*2,h:r.h+pad*2})),rad=rects.length>1?6:12;
+  const svg=$('gMask');svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.innerHTML='<path class="shade" d="M-2000 -2000H'+(W+2000)+'V'+(H+2000)+'H-2000Z'+holes.map(r=>rr(r,rad)).join('')+'"/>'+holes.map(r=>'<path class="ring" d="'+rr(r,rad)+'"/>').join('');
+  const box=unionRect(holes);
+  const b=$('gBub');b.innerHTML=html;b.className='bub';b.style.top='0px';$('guide').classList.add('on');$('guide').setAttribute('aria-hidden','false');
+  const bh=b.offsetHeight,below=box.t+box.h+14+bh<=H-6;
+  b.classList.add(below?'below':'above');b.style.top=(below?box.t+box.h+14:Math.max(6,box.t-14-bh))+'px';
+  const bl=b.offsetLeft;b.style.setProperty('--ax',Math.max(14,Math.min(b.offsetWidth-30,(ax!=null?ax:box.l+box.w/2)-bl-8))+'px');
+  const btn=b.querySelector('.gb');if(btn){btn.addEventListener('click',hideGuide);btn.focus({preventScroll:true});}
+  guide.on=true;
+ }
+ function showIntroGuide(){
+  const L=levels[active];if(!L.range)return;guide.introShown=true;guide.step='intro';guide.anchor=null;
+  const T=theme(),rect=unionRect([relRect($('inventory')),relRect($('remaining').closest('.budget-text'))]);
+  placeGuide([rect],'<button class="gb" type="button">知道了</button><span class="tag">新机制</span><b>短喷嘴 · 射程 '+L.range+'</b><br>这一关的'+T.device+'喷不远：每个方向<b>只喷 '+L.range+' 格</b>就停，不再像前几关那样喷满整条线。'+
+   '<div class="cmp"><span>前几关</span>'+rangeRow(L.range,false)+'<span class="new">本关</span>'+rangeRow(L.range,true)+'</div>长通道要<b>分段</b>喷；射程短，反而能贴着禁漆区放。放下第一台后，我再标给你看。');
+  say('新机制：短喷嘴，每个方向只喷 '+L.range+' 格（金框）。','warn');
+ }
+ function showFirstGuide(src){
+  const L=levels[active];guide.firstShown=true;guide.step='first';guide.anchor=src;
+  const tiles=L.hitSets[src].filter(i=>L.cells[i]!=='P').map(i=>relRect($('board').querySelector('[data-cell="'+i+'"]'))),srcRect=relRect($('board').querySelector('[data-cell="'+src+'"]'));
+  const stops=L.traces[src].filter(t=>t.end.type==='range').length;
+  placeGuide(tiles,'<button class="gb" type="button">知道了</button><b>看，金框里就是这台喷到的 '+tiles.length+' 格：每个方向到第 '+L.range+' 格就停。</b><br>'+
+   (stops?'线头的<b>短横线</b>就是射程终点，再往外的地面要靠别的'+theme().device+'。':'这一台四个方向都提前被挡漆板或边界截住了；射程终点会画成<b>短横线</b>。')+
+   (L.forbidden.length?'禁漆区只要在 '+L.range+' 格之外，就喷不到它。':''),srcRect.l+srcRect.w/2,2);
+ }
+ function hideGuide(){
+  if(!guide.on)return;guide.on=false;guide.step=null;$('guide').classList.remove('on');$('guide').setAttribute('aria-hidden','true');
+ }
+ function refreshGuide(){if(!guide.on)return;const step=guide.step,a=guide.anchor;if(step==='intro')showIntroGuide();else if(step==='first'&&a!=null)showFirstGuide(a);}
  function undo(){
-  const s=states[active];if(!s.history.length)return;cancelWin();s.lamps=s.history.pop();s.hint=null;render();sayCoverage(s.won?'已恢复完整合法布局。':'已撤销上一步。设备和覆盖均按恢复后的布局重新计算。',s.won?'success':'');
+  hideGuide();const s=states[active];if(!s.history.length)return;cancelWin();s.lamps=s.history.pop();s.hint=null;render();sayCoverage(s.won?'已恢复完整合法布局。':'已撤销上一步。设备和覆盖均按恢复后的布局重新计算。',s.won?'success':'');
  }
  function reset(){
-  cancelWin();const s=states[active];if(!s.lamps.length){s.hint=null;render();sayCoverage(levels[active].intro);return;}
+  hideGuide();cancelWin();const s=states[active];if(!s.lamps.length){s.hint=null;render();sayCoverage(levels[active].intro);return;}
   commit([],'本关已清空，未覆盖区域恢复原貌；撤销可恢复刚才的布局。','remove');
  }
  function choose(i){
-  if(i===active)return;cancelWin();if(modal.open)modal.close();active=i;buildBoard();render();
+  if(i===active)return;hideGuide();cancelWin();if(modal.open)modal.close();active=i;buildBoard();render();
   const s=states[i];if(s.hint)say(s.hint.text,'hint-coach');else sayCoverage(s.won?theme().complete+'。可以回看、收回设备或重置再玩。':levels[i].intro,s.won?'success':'');
+  if(levels[i].range&&!guide.introShown&&!s.won)requestAnimationFrame(()=>requestAnimationFrame(showIntroGuide));
  }
  function showHint(){
-  const s=states[active],L=levels[active],T=theme();if(s.won)return;
+  hideGuide();const s=states[active],L=levels[active],T=theme();if(s.won)return;
   if(!s.hint){
    const offending=s.lamps.find(i=>L.paths[i].some(ray=>ray.some(t=>L.forbidden.includes(t))));
    let g1Pick;
@@ -631,7 +704,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   setModal('怎样填满这张棋盘',hasProtection?'四向覆盖，额外保护禁水区域。':'先学放置、阻挡和有限预算。','<p><strong>1. 点普通目标放'+T.device+'，再点收回。</strong><br>已覆盖的普通格也能放，放置顺序不影响结果。</p><p><strong>2. 设备覆盖自身，并向四个方向发射。</strong><br>遇 C0 阻挡格或边界才停止，C0 不需要覆盖。</p><p><strong>3. 在预算内覆盖全部普通目标。</strong><br>数量用完时可移除、撤销、重置。'+(hasProtection?'同时检查保护区。':'本关没有额外特殊格。')+'</p>'+extra+'<p>提示逐步解释、最终标位，不会自动放设备。方向键移动焦点，Enter 或空格放置／收回。</p>',[{label:'开始尝试',run:()=>{}}],'','音效默认关闭；无计时压力。');
  }
  function scope(){
-  cancelWin();setModal('本版规则与范围','fill it up · 单文件离线 · 玩法原型 v5','<p><strong>关卡01 · 南极冰封：</strong><br>4×4，11普通目标、5个C0 阻挡格、无C1；预算2座喷冷桩。行配置：<span class="mono">.... / #.## / .... / #..#</span>；0base答案[1,10]。</p><p><strong>关卡02 · 花园洒水：</strong><br>5×5，17普通目标、7个C0 阻挡格、1个C1 禁覆盖格；预算3个固定洒水器。行配置：<span class="mono">..... / ..P.# / ..### / ..... / #..##</span>；0base答案[3,15,21]。仙人掌在C列第2行，禁放设备、禁受水，但水束会穿过。</p><p><strong>关卡03 · T11舞台布光 · C2 + R1：</strong><br>5×5，15普通目标+1个C2 双照格（双源靶），共16目标；8个C0、1个R1，无C1。行配置：<span class="mono">[&quot;#....&quot;,&quot;###.#&quot;,&quot;.....&quot;,&quot;##/.D&quot;,&quot;...#.&quot;]</span>；预算3台同型四向遮扉灯箱，0base答案[3,14,22]。镜面在C列第4行index17，双源靶在E列第4行index19。镜面固定不旋转、禁放、非目标；C2禁放、透光且须至少两台不同灯箱照到。</p><p><strong>关卡04 · T07博物馆监控 · C3 + G1：</strong><br>5×5，15普通格+3个C3 不可放置格（玻璃展柜），共18目标；7个C0 展墙。行配置：<span class="mono">[&quot;N..##&quot;,&quot;N#.#N&quot;,&quot;.....&quot;,&quot;#..#.&quot;,&quot;....#&quot;]</span>；预算4台四面摄像头监控柱，0base答案[2,10,19,21]（C列第1行、A列第3行、E列第4行、B列第5行）。展柜在A列第1行、A列第2行、E列第2行（index0/5/9）：禁放、透光、自身须被监控。本关开启G1：任一监控柱的视线（不含自身格）命中另一台所在格即违规，单向即算；普通格交叉覆盖合法。K≤3无解、K=4唯一解；关闭G1时K=4有2解，若展柜可放置则有12解。[2,10,14,21]虽18/18，但A列第3行与E列第3行互相拍到，不能通关。</p><p><strong>关卡05 · T17车间喷涂 · E2 + C1：</strong><br>6×6，29普通目标（全部可放）、6个C0 挡漆板、1个C1 禁漆区（B列第2行 index7）；无C2/C3/R1，G1关闭。行配置：<span class="mono">[&quot;...##.&quot;,&quot;.P....&quot;,&quot;......&quot;,&quot;#..##.&quot;,&quot;......&quot;,&quot;...#..&quot;]</span>；关卡字段 <span class="mono">range:2</span>，预算6台短喷嘴喷涂柱，0base答案[0,11,14,26,31,35]（A列第1行、F列第2行、C列第3行、C列第5行、B列第6行、F列第6行）。每台覆盖自身+四个方向各最多2格，遇C0/边界提前停止；C1仍透过但被命中即违规。K≤5无解、K=6唯一解；若射程无限（E0）则K=7才有解（20解）；若取消C1约束则K=6有4解。[0,8,17,25,30,34]虽29/29全覆盖，但C列第2行的漆雾喷到禁漆区，不能通关。</p><p>开页对五关交叉校验最少设备数、唯一合法解与答案：组合数不超过20万的前四关按普通candidates穷举0至预算设备（与v4相同）；第五关约59万组合，改用剪枝DFS——按“第一个未满足的目标”只分支能覆盖它的候选，同层已试候选在后续兄弟分支排除以免重复，C1违规/G1互拍出现即剪枝，数到2个解即停。胜利由覆盖、C1零违规、C2两源、G1零互拍、预算与合法候选判断；不会按是否点击答案强制胜利。</p><p><strong>已实现：</strong>E0基础四向发射器；E2限射程发射器（关卡字段range，射线逐格累计步数，超过range即停；traces/paths/hitSets共用截断后的路径；仅第五关range=2，缺省=无限射程）；C0阻挡、C1禁放禁覆盖但透过、C2不同源双照、C3不可放置但透光且需覆盖、R1固定反射、G1发射器不得互照（仅第四关开启，其余关关闭、允许互照）。/将(dr,dc)转(-dc,-dr)，反斜杠将其转(dc,dr)；射线按visited(cell,direction)终止，单设备全路径去重再计来源。</p><p><strong>未实现：</strong>C4邻接计数、E1、E3、E4、E5、R2。不引入其他延期项。</p><p>地图固定、提示不代放。水面冻结、土地花开、舞台亮起、展厅监控、车间喷漆仅表现当前覆盖，移除设备后重新计算。内嵌SVG与合成音效，无外部字体、图片、脚本、网络请求或storage；选关进度仅在本次打开的内存，刷新重置。公开状态只读，不能直接设置通关。</p>',[{label:'回到游戏',run:()=>{}}],'','这是五关本地试玩，不是量产关卡生成器；声音默认关闭。');
+  cancelWin();setModal('本版规则与范围','fill it up · 单文件离线 · 玩法原型 v6','<p><strong>关卡01 · 南极冰封：</strong><br>4×4，11普通目标、5个C0 阻挡格、无C1；预算2座喷冷桩。行配置：<span class="mono">.... / #.## / .... / #..#</span>；0base答案[1,10]。</p><p><strong>关卡02 · 花园洒水：</strong><br>5×5，17普通目标、7个C0 阻挡格、1个C1 禁覆盖格；预算3个固定洒水器。行配置：<span class="mono">..... / ..P.# / ..### / ..... / #..##</span>；0base答案[3,15,21]。仙人掌在C列第2行，禁放设备、禁受水，但水束会穿过。</p><p><strong>关卡03 · T11舞台布光 · C2 + R1：</strong><br>5×5，15普通目标+1个C2 双照格（双源靶），共16目标；8个C0、1个R1，无C1。行配置：<span class="mono">[&quot;#....&quot;,&quot;###.#&quot;,&quot;.....&quot;,&quot;##/.D&quot;,&quot;...#.&quot;]</span>；预算3台同型四向遮扉灯箱，0base答案[3,14,22]。镜面在C列第4行index17，双源靶在E列第4行index19。镜面固定不旋转、禁放、非目标；C2禁放、透光且须至少两台不同灯箱照到。</p><p><strong>关卡04 · T07博物馆监控 · C3 + G1：</strong><br>5×5，15普通格+3个C3 不可放置格（玻璃展柜），共18目标；7个C0 展墙。行配置：<span class="mono">[&quot;N..##&quot;,&quot;N#.#N&quot;,&quot;.....&quot;,&quot;#..#.&quot;,&quot;....#&quot;]</span>；预算4台四面摄像头监控柱，0base答案[2,10,19,21]（C列第1行、A列第3行、E列第4行、B列第5行）。展柜在A列第1行、A列第2行、E列第2行（index0/5/9）：禁放、透光、自身须被监控。本关开启G1：任一监控柱的视线（不含自身格）命中另一台所在格即违规，单向即算；普通格交叉覆盖合法。K≤3无解、K=4唯一解；关闭G1时K=4有2解，若展柜可放置则有12解。[2,10,14,21]虽18/18，但A列第3行与E列第3行互相拍到，不能通关。</p><p><strong>关卡05 · T17车间喷涂 · E2 + C1：</strong><br>6×6，29普通目标（全部可放）、6个C0 挡漆板、1个C1 禁漆区（B列第2行 index7）；无C2/C3/R1，G1关闭。行配置：<span class="mono">[&quot;...##.&quot;,&quot;.P....&quot;,&quot;......&quot;,&quot;#..##.&quot;,&quot;......&quot;,&quot;...#..&quot;]</span>；关卡字段 <span class="mono">range:2</span>，预算6台短喷嘴喷涂柱，0base答案[0,11,14,26,31,35]（A列第1行、F列第2行、C列第3行、C列第5行、B列第6行、F列第6行）。每台覆盖自身+四个方向各最多2格，遇C0/边界提前停止；C1仍透过但被命中即违规。K≤5无解、K=6唯一解；若射程无限（E0）则K=7才有解（20解）；若取消C1约束则K=6有4解。[0,8,17,25,30,34]虽29/29全覆盖，但C列第2行的漆雾喷到禁漆区，不能通关。</p><p>开页对五关交叉校验最少设备数、唯一合法解与答案：组合数不超过20万的前四关按普通candidates穷举0至预算设备（与v4相同）；第五关约59万组合，改用剪枝DFS——按“第一个未满足的目标”只分支能覆盖它的候选，同层已试候选在后续兄弟分支排除以免重复，C1违规/G1互拍出现即剪枝，数到2个解即停。胜利由覆盖、C1零违规、C2两源、G1零互拍、预算与合法候选判断；不会按是否点击答案强制胜利。</p><p><strong>已实现：</strong>E0基础四向发射器；E2限射程发射器（关卡字段range，射线逐格累计步数，超过range即停；traces/paths/hitSets共用截断后的路径；仅第五关range=2，缺省=无限射程）；C0阻挡、C1禁放禁覆盖但透过、C2不同源双照、C3不可放置但透光且需覆盖、R1固定反射、G1发射器不得互照（仅第四关开启，其余关关闭、允许互照）。/将(dr,dc)转(-dc,-dr)，反斜杠将其转(dc,dr)；射线按visited(cell,direction)终止，单设备全路径去重再计来源。</p><p><strong>未实现：</strong>C4邻接计数、E1、E3、E4、E5、R2。不引入其他延期项。</p><p>地图固定、提示不代放。水面冻结、土地花开、舞台亮起、展厅监控、车间喷漆仅表现当前覆盖，移除设备后重新计算。内嵌SVG与合成音效，无外部字体、图片、脚本、网络请求或storage；选关进度仅在本次打开的内存，刷新重置。公开状态只读，不能直接设置通关。</p>',[{label:'回到游戏',run:()=>{}}],'','这是五关本地试玩，不是量产关卡生成器；声音默认关闭。');
  }
  $('board').addEventListener('click',e=>{const tile=e.target.closest('[data-cell]');if(tile)tap(Number(tile.dataset.cell));});
  $('board').addEventListener('keydown',e=>{
@@ -646,8 +719,10 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  window.FillItUp=Object.freeze({getState:()=>{
   const s=states[active],cov=E.coverage(levels[active],s.lamps);
   return freeze({active,lamps:s.lamps.slice(),won:E.won(levels[active],s.lamps),remaining:levels[active].budget-s.lamps.length,coverage:cov.covered,covered:cov.covered,total:cov.total,count:cov.count,sources:cov.sources,doubleStatus:cov.doubleStatus,unmetDouble:cov.unmetDouble,cleared:states.map(x=>x.everCleared),hintDepth:s.hint?s.hint.depth:0,history:s.history.length,violations:cov.violations.slice(),theme:levels[active].theme,g1:levels[active].g1,emitterHits:cov.emitterHits,conflictIds:cov.conflictIds,noPlace:levels[active].noPlace.slice(),range:levels[active].range,levelCount:levels.length});
- },audits,levels,api:E});
- window.addEventListener('resize',drawBeams);
+ },guide:()=>({on:guide.on,step:guide.step,introShown:guide.introShown,firstShown:guide.firstShown}),audits,levels,api:E});
+ window.addEventListener('resize',()=>{drawBeams();refreshGuide();});
+ $('mechanics').addEventListener('click',e=>{if(e.target.closest('[data-guide-replay]')){e.preventDefault();showIntroGuide();}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&guide.on)hideGuide();});
  buildBoard();render();say(levels[active].intro);updateSound();
 })();
 </script>
