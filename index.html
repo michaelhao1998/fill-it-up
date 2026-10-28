@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="data:,">
-<title>fill it up · 四关试玩 v4</title>
+<title>fill it up · 五关试玩 v5</title>
 <style>
 :root{--page:#e8f2f8;--paper:#f8fcff;--ink:#244b61;--muted:#688493;--line:#cedfe8;--accent:#327fa6;--soft:#e8f4fb;--frame:#c1d8e6;--dry:#bad6e6;--dry-edge:#9dbfd3;--wet:#f1fcff;--wet-edge:#9cd9ed;--beam:#65c9ed;--beam-core:#e9fcff;--block-bg:#d7e7f0;--block-edge:#97b5c9;--mono:'IBM Plex Mono',Consolas,'Courier New',monospace}
 *{box-sizing:border-box}[hidden]{display:none!important}html{min-height:100%;background:var(--page)}
@@ -16,7 +16,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
 .top{display:flex;align-items:center;gap:10px;height:42px}.brand-mark{width:36px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:14px 14px 8px 8px;background:var(--soft);flex:none}.brand-mark svg{width:29px;height:31px}
 .brand{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-1.2px;line-height:1.1}.chapter{color:var(--muted);font-size:10px;letter-spacing:.6px;margin-top:4px}.top-tools{margin-left:auto;display:flex;gap:6px}
 .icon-btn{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;color:var(--muted);background:transparent;display:grid;place-items:center}.icon-btn svg{width:17px;height:17px}.icon-btn.on{color:var(--accent);background:var(--soft)}
-.level-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}.level-tab{height:37px;display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;white-space:nowrap;border:1px solid var(--line);color:var(--muted);border-radius:10px;background:var(--paper);font-size:12px}.level-tab .check{font-size:13px;font-weight:700;opacity:0;color:var(--accent)}.level-tab.cleared .check{opacity:1}.level-tab.active{border-color:var(--accent);background:var(--soft);color:var(--ink)}.level-tab .mono{font-size:10px;color:inherit}
+.level-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:14px}.level-tab{height:37px;display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;white-space:nowrap;border:1px solid var(--line);color:var(--muted);border-radius:10px;background:var(--paper);font-size:11.5px;padding:0 2px}.level-tab .check{font-size:13px;font-weight:700;opacity:0;color:var(--accent)}.level-tab.cleared .check{opacity:1}.level-tab.active{border-color:var(--accent);background:var(--soft);color:var(--ink)}.level-tab .mono{font-size:10px;color:inherit}
 .objective{margin:15px 0 11px;display:flex;align-items:center;justify-content:space-between;gap:10px}.objective h1{font-size:19px;line-height:1.4;margin:0;font-weight:600}.objective p{font-size:11px;line-height:1.6;margin:4px 0 0;color:var(--muted)}.chapter-icon{width:40px;height:42px;flex:none}.chapter-icon svg{width:100%;height:100%}
 .resources{display:flex;align-items:center;gap:10px;min-height:44px;margin-bottom:12px}.inventory{display:flex;gap:5px;align-items:center}.emitter-slot{height:40px;width:31px;display:grid;place-items:center;border:1px solid var(--line);background:var(--soft);border-radius:8px;transition:opacity .2s,background .2s}.emitter-slot svg{width:26px;height:32px}.emitter-slot.used{opacity:.3;background:var(--paper)}
 .budget-text{line-height:1.5;font-size:10px;color:var(--muted);white-space:nowrap}.budget-text b{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:600}.coverage-stat{margin-left:auto;text-align:right;min-width:85px}.coverage-stat strong{font-family:var(--mono);font-size:17px;font-weight:500}.coverage-stat .total{color:var(--muted);font-size:12px}.coverage-stat small{font-size:10px;color:var(--muted);display:block;margin-top:2px}
@@ -51,9 +51,12 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
 .g1-status{background:#eef8fa;border-color:#a9d6e0;color:#256f82}.g1-status.violation{background:#fdeceb;border-color:#e09a9a;color:#a33a3a}.legend .glass-key{background:#e3f1fa;border:1px dashed #5aa6cc}.legend .g1-key{background:#fff;border:2px solid #d64545}
 .app[data-theme="museum"] .objective p{font-size:10px}.app[data-theme="museum"] .coach{font-size:10.5px}
 .app[data-theme="stage"] .coverage-legend{display:none}.app[data-theme="stage"] .coach{font-size:10.5px}.app[data-theme="stage"] .objective p{font-size:10px}.stage-tutorial summary{cursor:pointer;color:var(--ink);font-weight:600;touch-action:manipulation}.stage-tutorial p{margin:5px 0}.stage-tutorial[open]{padding-bottom:3px}
+.tile.forbidden .tape-art{position:absolute;width:90%;height:90%;z-index:1;pointer-events:none}.app[data-theme="workshop"] .tile.forbidden{background:#f3f1ec;border:2px solid #d9b13a}.app[data-theme="workshop"] .tile.forbidden.violation{background:#fbd9c8;border:2px solid #c8452c;box-shadow:inset 0 0 0 2px #ffe9de}.app[data-theme="workshop"] .forbidden-badge{background:#fffaf0;border-color:#b8902a;color:#6b5312}.app[data-theme="workshop"] .tile.violation .forbidden-badge{background:#c8452c;border-color:#c8452c;color:#fff}
+.app[data-theme="workshop"] .protection-status{background:#f6f4ee;border-color:#d8cfb6;color:#5f5641}.app[data-theme="workshop"] .protection-status.violation{background:#fde6db;border-color:#d98b6b;color:#a23a1e}.app[data-theme="workshop"] .legend .protect{background:repeating-linear-gradient(45deg,#f2c230 0 2px,#3b4147 2px 4px);border:1px solid #3b4147}.app[data-theme="workshop"] .legend .protect:after{display:none}.legend .e2-key{background:#3d454c;border-color:#3d454c;position:relative}.legend .e2-key:after{content:'2';position:absolute;inset:0;color:#fff;font:700 8px/9px var(--mono);text-align:center}
+.beam-layer .spray-stop{fill:none;stroke:var(--beam);stroke-linecap:round;opacity:.95}.beam-layer .spray-dot{fill:var(--beam)}.app[data-theme="workshop"] .objective p{font-size:10px}.app[data-theme="workshop"] .coach{font-size:10.5px}
 @keyframes place{from{transform:scale(.92)}to{transform:scale(1)}}@keyframes nudge{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 @media(max-width:480px){body{padding:0;align-items:flex-start;background:var(--paper)}html{background:var(--paper)}.app{width:414px;border:0;border-radius:0;box-shadow:none;padding:16px 18px 14px}.brand{font-size:22px}.room{padding:10px 11px 12px}.objective{margin-top:13px}.level-tabs{margin-top:12px}}
-@media(max-height:900px) and (max-width:480px){.app{padding-top:12px;padding-bottom:10px}.level-tabs{margin-top:9px}.objective{margin-top:10px;margin-bottom:9px}.resources{margin-bottom:9px;min-height:39px}.emitter-slot{height:35px}.room{padding-top:8px;padding-bottom:9px}.legend{margin-top:8px;gap:5px 10px}.coach{margin-top:8px;min-height:44px;padding:7px 9px;line-height:1.55}.actions{margin-top:8px}.action{height:40px}.bottom{margin-top:9px}.mechanics{margin-top:6px;padding-top:5px;line-height:1.45}.protection-status{margin-top:6px;padding:5px 7px}.app[data-theme="stage"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="stage"] .double-status{margin-top:6px;padding:4px 7px}.app[data-theme="stage"] .coach{line-height:1.45}.app[data-theme="museum"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="museum"] .coach{line-height:1.45}.level-tab{height:34px}}
+@media(max-height:900px) and (max-width:480px){.app{padding-top:12px;padding-bottom:10px}.level-tabs{margin-top:9px}.objective{margin-top:10px;margin-bottom:9px}.resources{margin-bottom:9px;min-height:39px}.emitter-slot{height:35px}.room{padding-top:8px;padding-bottom:9px}.legend{margin-top:8px;gap:5px 10px}.coach{margin-top:8px;min-height:44px;padding:7px 9px;line-height:1.55}.actions{margin-top:8px}.action{height:40px}.bottom{margin-top:9px}.mechanics{margin-top:6px;padding-top:5px;line-height:1.45}.protection-status{margin-top:6px;padding:5px 7px}.app[data-theme="stage"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="stage"] .double-status{margin-top:6px;padding:4px 7px}.app[data-theme="stage"] .coach{line-height:1.45}.app[data-theme="museum"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="museum"] .coach{line-height:1.45}.app[data-theme="workshop"] .grid-shell{max-width:270px;margin:0 auto}.app[data-theme="workshop"] .coach{line-height:1.45}.level-tab{height:34px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.modal::backdrop{backdrop-filter:none}}
 </style>
 </head>
@@ -61,19 +64,19 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
 <main class="app" id="app" data-theme="ice">
 <header class="top">
 <div class="brand-mark" id="brand-mark" aria-hidden="true"></div>
-<div><div class="brand">fill it up</div><div class="chapter" id="chapter">南极冰封 · 四关试玩</div></div>
+<div><div class="brand">fill it up</div><div class="chapter" id="chapter">南极冰封 · 五关试玩</div></div>
 <div class="top-tools"><button class="icon-btn" id="sound" aria-label="开启声音" aria-pressed="false" title="开启声音"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path id="sound-wave" d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><button class="icon-btn" id="help" aria-label="玩法说明" title="玩法说明"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8a3 3 0 0 1 6 0c0 2-3 2-3 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg></button></div>
 </header>
-<nav class="level-tabs" aria-label="选择关卡"><button class="level-tab active" data-level="0" aria-label="01 南极冰封" aria-pressed="true"><span class="mono">01</span>冰封<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="1" aria-label="02 花园洒水" aria-pressed="false"><span class="mono">02</span>花园<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="2" aria-label="03 舞台布光" aria-pressed="false"><span class="mono">03</span>舞台<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="3" aria-label="04 博物馆监控" aria-pressed="false"><span class="mono">04</span>展馆<span class="check" aria-label="已通关">✓</span></button></nav>
+<nav class="level-tabs" aria-label="选择关卡"><button class="level-tab active" data-level="0" aria-label="01 南极冰封" aria-pressed="true"><span class="mono">01</span>冰封<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="1" aria-label="02 花园洒水" aria-pressed="false"><span class="mono">02</span>花园<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="2" aria-label="03 舞台布光" aria-pressed="false"><span class="mono">03</span>舞台<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="3" aria-label="04 博物馆监控" aria-pressed="false"><span class="mono">04</span>展馆<span class="check" aria-label="已通关">✓</span></button><button class="level-tab" data-level="4" aria-label="05 车间喷涂" aria-pressed="false"><span class="mono">05</span>车间<span class="check" aria-label="已通关">✓</span></button></nav>
 <div class="objective"><div><h1 id="objective-title">让这片海面结成冰</h1><p id="objective-sub">用 2 座喷冷桩，冻结全部水面。</p></div><div class="chapter-icon" id="chapter-icon" aria-hidden="true"></div></div>
 <section class="resources" id="resources" aria-label="设备预算和覆盖进度"><div class="inventory" id="inventory" aria-hidden="true"></div><div class="budget-text"><span id="budget-label">剩余喷冷桩</span><br><b id="remaining">2</b><span class="mono" id="budget-total"> / 2</span></div><div class="coverage-stat"><strong><span id="covered">0</span><span class="total" id="target-total"> / 11</span></strong><small id="coverage-label">水面已冻结</small><div class="progress" role="progressbar" id="progress" aria-label="目标覆盖进度" aria-valuemin="0" aria-valuemax="11" aria-valuenow="0"><i id="progress-bar"></i></div></div></section>
 <div class="room"><div class="room-top"><span class="room-name"><i class="room-dot"></i><span id="room-label">南极冰封</span></span><span class="room-size" id="room-size">4 × 4</span></div><div class="grid-shell" id="grid-shell" style="--n:4"><div class="columns" id="columns" aria-hidden="true"></div><div class="rows" id="rows" aria-hidden="true"></div><div class="board" id="board" role="group" aria-label="南极冰封棋盘"></div></div><div id="protection-status" class="protection-status" role="status" aria-live="polite" hidden></div><div id="double-status" class="double-status" role="status" aria-live="polite" hidden></div><div id="g1-status" class="protection-status g1-status" role="status" aria-live="polite" hidden></div></div>
-<div class="legend" aria-label="图例"><span class="coverage-legend"><i></i><span id="legend-dry">未冻结水面</span></span><span class="coverage-legend"><i class="bright"></i><span id="legend-wet">已冻结冰面</span></span><span><i class="block"></i>C0 阻挡格</span><span id="legend-c1" hidden><i class="protect"></i>C1 禁覆盖格</span><span id="legend-c2" hidden><i class="double-key"></i>C2 双照格（两源）</span><span id="legend-r1" hidden><i class="mirror-key"></i>R1 反射格</span><span id="legend-c3" hidden><i class="glass-key"></i>C3 玻璃展柜（禁装·透光）</span><span id="legend-g1" hidden><i class="g1-key"></i>G1 互拍冲突</span></div>
+<div class="legend" aria-label="图例"><span class="coverage-legend"><i></i><span id="legend-dry">未冻结水面</span></span><span class="coverage-legend"><i class="bright"></i><span id="legend-wet">已冻结冰面</span></span><span><i class="block"></i>C0 阻挡格</span><span id="legend-c1" hidden><i class="protect"></i><span id="legend-c1-text">C1 禁覆盖格</span></span><span id="legend-e2" hidden><i class="e2-key"></i>E2 短喷嘴 · 射程 2</span><span id="legend-c2" hidden><i class="double-key"></i>C2 双照格（两源）</span><span id="legend-r1" hidden><i class="mirror-key"></i>R1 反射格</span><span id="legend-c3" hidden><i class="glass-key"></i>C3 玻璃展柜（禁装·透光）</span><span id="legend-g1" hidden><i class="g1-key"></i>G1 互拍冲突</span></div>
 <div class="mechanics" id="mechanics"></div>
 <div class="win-ribbon" id="win-ribbon"><span id="ribbon-text">海面已全部冻结</span><button id="ribbon-next">去花园</button></div>
 <div class="coach" id="coach" role="status" aria-live="polite"><svg class="coach-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4v12" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor"/></svg><div class="coach-copy" id="coach-copy">点水面放喷冷桩，再点收回。冷束只沿横向、纵向前进，遇冰山停止。</div></div>
 <div class="actions"><button class="action" id="undo" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 10l5 5M4 10h10a6 6 0 0 1 0 12" transform="translate(0 -2)" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>撤销</button><button class="action" id="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a8 8 0 1 0 1 7M19 3v5h-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>重置</button><button class="action primary" id="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16m-5-7-3-1 3-1m10 2 3-1-3-1M11 7l1-3 1 3m-2 10 1 3 1-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="hint-label">提示</span></button></div>
-<footer class="bottom"><span class="mono">v4 · 04 levels · offline</span><button id="scope">本版规则</button><span>无计时 · 可反复调整</span></footer>
+<footer class="bottom"><span class="mono">v5 · 05 levels · offline</span><button id="scope">本版规则</button><span>无计时 · 可反复调整</span></footer>
 <div id="fatal" hidden class="error" role="alert"></div>
 <noscript><div class="error">试玩需要浏览器开启 JavaScript；所有资源已内嵌，不需要联网。</div></noscript>
 </main>
@@ -99,6 +102,14 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   {"index":19,"region":[9,14,19],"notice":"A列第3行已经看穿整个第3行。G1 下第3行还能再放监控柱吗？E列第2行的展柜又由谁来看？","reason":"第3行再放任何监控柱都会与A列第3行互相拍到；E列第2行左边、上方都是展墙，只能由E列竖线看到。E列第3行被G1排除，只剩E列第4行。","reveal":"试试E列第4行：向上看穿E列第3行与E列第2行展柜，而且不和A列第3行同排。"},
   {"index":2,"region":[0,1,2,7,12,17,22],"notice":"第一行和C列还剩不少地面，哪个交点能一起照顾？","reason":"C列第1行向左看到B列第1行并穿到A列第1行展柜，向右遇展墙停止；向下贯通整条C列到C列第5行。它与其他监控柱不同排同列，不会互拍。","reveal":"试试C列第1行：照第一行与整条C列。"},
   {"index":21,"region":[11,16,20,21,22,23],"notice":"最后看最下面一行和B列下段。","reason":"B列第5行向左右照整条第5行（E列第5行是展墙），向上照B列第4行、B列第3行，遇B列第2行展墙停止；画面里没有其他监控柱。","reveal":"试试B列第5行：补齐最下行与B列下段。"}
+ ]},
+ {"id":"workshop","theme":"workshop","name":"车间喷涂","title":"短喷嘴，贴着禁漆区喷","rows":["...##.",".P....","......","#..##.","......","...#.."],"budget":6,"range":2,"answer":[0,11,14,26,31,35],"intro":"点水泥地放喷涂柱，再点收回。短喷嘴只向四个方向各喷 2 格，遇挡漆板提前停；B列第2行禁漆区不能被喷到，漆雾会穿过它。","hints":[
+  {"index":0,"region":[0,1,2,6,12],"notice":"先看禁漆区旁边：B列第1行、A列第2行都紧贴B列第2行禁漆区。能喷到它们、又不喷到禁漆区的位置很少。","reason":"B列第1行只能由A列第1行或C列第1行安全喷到，A列第2行只能由A列第1行或A列第3行安全喷到（放在它们自己身上会喷进禁漆区）；两份名单只有A列第1行重合，一台同时照顾两格。","reveal":"试试A列第1行：向右喷B、C列第1行，向下喷A列第2、3行，禁漆区保持干净。"},
+  {"index":11,"region":[5,9,10,11,17,23],"notice":"再看右上：F列上半与第2行右段（D、E列），哪一台能一起兼顾？","reason":"只有F列第2行能兼顾：向上喷F列第1行，向下喷F列第3、4行，向左喷E、D列第2行。若射程无限，它会一路喷到B列第2行禁漆区；短喷嘴往左只喷 2 格（E、D列）就停，所以能和禁漆区同排。","reveal":"试试F列第2行：往左喷到D列第2行就停，禁漆区仍然干净。"},
+  {"index":31,"region":[19,25,30,31,32],"notice":"看左下角：A列第6行、C列第6行和B列下段，谁来喷？","reason":"B列第6行向左喷A列第6行，向右喷C列第6行后被D列第6行挡漆板截住，向上只喷到B列第4行就停——离B列第2行禁漆区还有 2 格；射程无限的话就会喷进禁漆区。","reveal":"试试B列第6行：照顾左下角与B列下段，向上的射程终点停在B列第4行。"},
+  {"index":14,"region":[2,8,12,13,14,15,16,20,26],"notice":"第3行中段和C列上段还空着，找一个交点。","reason":"C列第3行向左右各喷 2 格（A至E列第3行），向上喷C列第2、1行，向下喷C列第4、5行；它和禁漆区不同排也不同列。射程只有 2 格，F列第3行留给F列第2行那台。","reveal":"试试C列第3行：一台覆盖第3行中段与C列上段。"},
+  {"index":26,"region":[14,20,24,25,26,27,28,32],"notice":"第5行很长，短喷嘴喷不满一整排，要分段处理。","reason":"C列第5行向左喷到A列第5行，向右喷到E列第5行，向下喷C列第6行；F列第5行留给右下角那台。","reveal":"试试C列第5行：补齐第5行大部分与C列下段。"},
+  {"index":35,"region":[23,29,34,35],"notice":"最后看右下角：E列第6行、F列第5行、F列第6行。","reason":"F列第6行向左喷E列第6行后被D列第6行挡漆板截住，向上喷F列第5、4行，正好收尾。","reveal":"试试F列第6行：喷满右下角，完成车间作业。"}
  ]}
 ]
 </script>
@@ -120,19 +131,24 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    else{targets.push(i);if(x==='D')doubles.push(i);else candidates.push(i);}
   });
   if(!Number.isInteger(level.budget)||level.budget<1||!targets.length)throw new Error('关卡预算或目标错误');
+  // E2 限射程：range 为正整数时每条射线最多前进 range 步；缺省（undefined/null）= 无限射程（E0）。
+  const range=level.range===undefined||level.range===null?null:level.range;
+  if(range!==null&&(!Number.isInteger(range)||range<1))throw new Error('关卡射程错误');
   for(const source of candidates){
    const hits=new Set([source]);traces[source]=[];
    paths[source]=DIRS.map(([initialDr,initialDc])=>{
-    const ray=[],points=[],visited=new Set();let r=Math.floor(source/width),c=source%width,dr=initialDr,dc=initialDc,end,loopsClosed=false;
+    const ray=[],points=[],visited=new Set();let r=Math.floor(source/width),c=source%width,dr=initialDr,dc=initialDc,end,loopsClosed=false,steps=0;
     while(true){
      const a=r+dr,b=c+dc;
      if(a<0||a>=height||b<0||b>=width){end={type:'boundary',index:r*width+c,direction:[dr,dc],row:a,col:b};break;}
      const i=a*width+b,x=cells[i];
      if(x==='#'){end={type:'wall',index:r*width+c,blockedIndex:i,direction:[dr,dc]};break;}
+     // 先判边界/阻挡，再判射程：只有“本可继续却被射程截断”才记为 range 终点。
+     if(range!==null&&steps>=range){end={type:'range',index:r*width+c,direction:[dr,dc],range};break;}
      const state=i+':'+dr+','+dc,incoming=[dr,dc];
      // 状态是格子与入射方向；同格不同方向仍可继续，重复状态闭环终止。
      if(visited.has(state)){ray.push(i);points.push({index:i,incoming,outgoing:[dr,dc],repeated:true});end={type:'loop',index:i,direction:[dr,dc],state};loopsClosed=true;break;}
-     visited.add(state);ray.push(i);hits.add(i);
+     visited.add(state);ray.push(i);hits.add(i);steps++;
      if(reflectMirrors){if(x==='/')[dr,dc]=[-dc,-dr];else if(x==='\\')[dr,dc]=[dc,dr];}
      points.push({index:i,incoming,outgoing:[dr,dc],mirror:x==='/'||x==='\\'});r=a;c=b;
     }
@@ -141,7 +157,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    // 先合并单设备所有射线，避免反射回路或多射线重复增加来源数。
    hitSets[source]=Array.from(hits).sort((a,b)=>a-b);
   }
-  return Object.assign({},level,{width,height,cells,paths,traces,hitSets,targets,candidates,blocked,forbidden,doubles,mirrors,noPlace,g1:level.g1===true,reflectMirrors});
+  return Object.assign({},level,{width,height,cells,paths,traces,hitSets,targets,candidates,blocked,forbidden,doubles,mirrors,noPlace,g1:level.g1===true,reflectMirrors,range});
  }
  function coverage(level,emitters){
   const identities=Array.from({length:level.cells.length},()=>new Set()),valid=[];
@@ -176,7 +192,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   if(emitters.length>=level.budget)return {type:'budget',lamps:emitters.slice()};
   return {type:'place',lamps:emitters.concat(i)};
  }
- function audit(level){
+ function auditExhaustive(level){
   const counts=[],solutions=[];let states=0;
   for(let k=0;k<=level.budget;k++){
    let count=0;const chosen=[];
@@ -186,7 +202,46 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    }
    visit(0);counts.push(count);
   }
-  return {minimum:counts.findIndex(n=>n>0),solutionCount:counts[level.budget],counts,solutions,states};
+  return {minimum:counts.findIndex(n=>n>0),solutionCount:counts[level.budget],counts,solutions,states,method:'exhaustive'};
+ }
+ // 剪枝 DFS：按“第一个未满足的需求”（未覆盖目标，其次双源不足的C2）分支，只试能满足它的候选；
+ // 同一节点已试过的候选在后续兄弟分支中排除，保证每个集合至多访问一次。C1 违规与 G1 互拍只增不减，出现即剪枝。
+ // 最少设备的合法集合必然“去掉任一台就不满足需求”，因此一定被枚举到；minimum===budget 时 solutionCount 精确（数到 limit 即停）。
+ function auditDfs(level,limit){
+  const counts=[0],solutions=[];let states=0,minimum=-1,solutionCount=null;
+  for(let k=1;k<=level.budget&&minimum<0;k++){
+   const chosen=[],banned=new Set(),found=[];
+   (function visit(){
+    if(found.length>=limit)return;
+    states++;
+    const cov=coverage(level,chosen);
+    if(cov.violations.length||(level.g1&&cov.emitterHits.length))return;
+    let need=level.targets.find(i=>cov.count[i]<1);
+    if(need===undefined)need=level.doubles.find(i=>cov.count[i]<2);
+    if(need===undefined){if(chosen.length===k&&won(level,chosen))found.push(chosen.slice().sort((a,b)=>a-b));return;}
+    if(chosen.length===k)return;
+    const tried=[];
+    for(const c of level.candidates){
+     if(chosen.includes(c)||banned.has(c)||!level.hitSets[c].includes(need))continue;
+     chosen.push(c);visit();chosen.pop();banned.add(c);tried.push(c);
+     if(found.length>=limit)break;
+    }
+    tried.forEach(c=>banned.delete(c));
+   })();
+   counts.push(found.length);
+   if(found.length){
+    minimum=k;
+    if(k===level.budget){found.sort((p,q)=>{for(let j=0;j<p.length;j++)if(p[j]!==q[j])return p[j]-q[j];return 0;});solutions.push(...found);solutionCount=found.length;}
+   }
+  }
+  if(minimum<0)solutionCount=0;
+  return {minimum,solutionCount,counts,solutions,states,method:'dfs',limit};
+ }
+ function combinations(n,k){let c=1;for(let j=1;j<=k;j++)c=c*(n-k+j)/j;return Math.round(c);}
+ // 组合总数不超过 20 万用原穷举（前四关，结果与 v4 完全一致）；更大的关卡（第五关约 59 万）改用剪枝 DFS。
+ function audit(level,{method,limit=2}={}){
+  if(!method){let total=0;for(let k=0;k<=level.budget;k++)total+=combinations(level.candidates.length,k);method=total<=200000?'exhaustive':'dfs';}
+  return method==='dfs'?auditDfs(level,limit):auditExhaustive(level);
  }
  root.FillItUpEngine=Object.freeze({prepare,coverage,won,toggle,audit,DIRS});
 })(typeof window!=='undefined'?window:globalThis);
@@ -197,7 +252,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  const $=id=>document.getElementById(id),E=window.FillItUpEngine;
  window.addEventListener('error',e=>{$('fatal').hidden=false;$('fatal').textContent='运行异常：'+e.message+'。请刷新后重试。';});
  function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
- const levels=freeze(JSON.parse($('level-data').textContent).map(L=>E.prepare(L))),audits=freeze(levels.map(E.audit));
+ const levels=freeze(JSON.parse($('level-data').textContent).map(L=>E.prepare(L))),audits=freeze(levels.map(L=>E.audit(L)));
  for(let i=0;i<levels.length;i++)if(audits[i].minimum!==levels[i].budget||audits[i].solutionCount!==1||!E.won(levels[i],levels[i].answer)||JSON.stringify(audits[i].solutions[0])!==JSON.stringify(levels[i].answer))throw new Error('关卡未通过最少预算、唯一解与答案交叉校验');
  const iceEmitter=`<svg class="emitter" viewBox="0 0 64 70" aria-hidden="true">
  <ellipse cx="32" cy="59" rx="23" ry="7" fill="#659fc2" opacity=".22"/><path d="m12 52 20-8 20 8-6 10H18Z" fill="#84bfdc" stroke="#4b87ac"/>
@@ -298,6 +353,39 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  <path d="M80 46l16 6v12c0 10-7 17-16 21-9-4-16-11-16-21V52Z" fill="#dff6f9" stroke="#2b8aa3" stroke-width="2"/><path d="m72 64 6 6 11-12" fill="none" stroke="#2b8aa3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
  <path d="M80 25v-6M64 33l-4-4M96 33l4-4" stroke="#2fb3cf" stroke-width="2" stroke-linecap="round"/><circle cx="80" cy="29" r="3" fill="#8ee6f3" stroke="#2b8aa3"/>
  </svg>`;
+ const workshopEmitter=`<svg class="emitter" viewBox="0 0 64 70" aria-hidden="true">
+ <ellipse cx="32" cy="62" rx="21" ry="5" fill="#6b5a4e" opacity=".2"/><path d="M20 56h24l3 6H17Z" fill="#8f979e" stroke="#5d656c"/>
+ <rect x="28" y="35" width="8" height="22" rx="2" fill="#d4d8db" stroke="#6b737a" stroke-width="1.3"/><path d="M31 37v18" stroke="#eef0f1" stroke-width="2"/>
+ <g fill="#5d656c" stroke="#3d454c" stroke-width=".8"><rect x="28.5" y="11" width="7" height="8" rx="1.5"/><rect x="10" y="25" width="9" height="7" rx="1.5"/><rect x="45" y="25" width="9" height="7" rx="1.5"/><rect x="28.5" y="36" width="7" height="5" rx="1.5"/></g>
+ <rect x="19" y="18" width="26" height="19" rx="5" fill="#f3b54a" stroke="#8a6420" stroke-width="1.5"/><path d="M23 22h14" stroke="#fde3a6" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="28" r="4.2" fill="#fff7e8" stroke="#8a6420" stroke-width="1.2"/><circle cx="32" cy="28" r="1.6" fill="#ef7d52"/>
+ <g stroke="#ef7d52" stroke-width="2" stroke-linecap="round"><path d="M32 3v5M3 28.5h5M56 28.5h5"/></g><g fill="#ef7d52" opacity=".5"><circle cx="32" cy="1.6" r="1.2"/><circle cx="1.4" cy="28.5" r="1.2"/><circle cx="62.6" cy="28.5" r="1.2"/></g>
+ <rect x="44" y="3" width="17" height="14" rx="3.5" fill="#3d454c"/><text x="52.5" y="14" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Consolas,'Courier New',monospace">2</text>
+ </svg>`;
+ const workshopBlock=`<svg class="obstacle" viewBox="0 0 64 70" aria-hidden="true">
+ <ellipse cx="32" cy="63" rx="27" ry="4" fill="#a9b1b7" opacity=".5"/><path d="M13 57h9v6h-9zM42 57h9v6h-9z" fill="#7d868d"/>
+ <rect x="8" y="9" width="48" height="49" rx="3" fill="#f3f5f6" stroke="#8e979e" stroke-width="1.5"/><rect x="12.5" y="13.5" width="39" height="40" rx="1.5" fill="#e4e8eb" stroke="#bac2c7"/>
+ <path d="M13 27h38M13 40h38" stroke="#cdd3d7" stroke-width="1.3"/><path d="M16 17h12M16 30h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+ <g fill="#9aa3a9"><circle cx="12" cy="13" r="1.4"/><circle cx="52" cy="13" r="1.4"/><circle cx="12" cy="54" r="1.4"/><circle cx="52" cy="54" r="1.4"/></g>
+ <path d="M8 52q8-3 16 0t16 0 16 0" fill="none" stroke="#ef9a6e" stroke-width="2.4" opacity=".55"/>
+ </svg>`;
+ const workshopTerrain=`<svg class="terrain" viewBox="0 0 64 64" aria-hidden="true">
+ <g class="dry-detail"><g fill="#acaca6"><circle cx="12" cy="14" r="1.2"/><circle cx="40" cy="10" r=".9"/><circle cx="51" cy="31" r="1.3"/><circle cx="22" cy="45" r="1"/><circle cx="46" cy="52" r=".9"/><circle cx="9" cy="54" r="1.1"/><circle cx="30" cy="30" r=".8"/></g><path d="M26 17l6 7-2 8 7 6M44 40l5 4" fill="none" stroke="#c1c1bb" stroke-width="1"/></g>
+ <g class="wet-detail" fill="none" stroke-linecap="round"><path d="M6 15q13-5 26 0t26 0M6 32q13-5 26 0t26 0M6 49q13-5 26 0t26 0" stroke="#fcd6c0" stroke-width="3.2" opacity=".75"/><path d="M6 23q13-4 26 0t26 0M6 40q13-4 26 0t26 0" stroke="#de7247" stroke-width="1.3" opacity=".55"/><g fill="#d9653a" stroke="none" opacity=".6"><circle cx="14" cy="8" r="1.6"/><circle cx="50" cy="57" r="1.8"/><circle cx="44" cy="7" r="1"/><circle cx="8" cy="57" r="1.1"/></g></g>
+ </svg>`;
+ const tapeArt=`<svg class="tape-art" viewBox="0 0 64 64" aria-hidden="true">
+ <defs><pattern id="tape-stripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f2c230"/><rect width="4" height="8" fill="#3b4147"/></pattern></defs>
+ <rect x="4" y="4" width="56" height="56" rx="2" fill="none" stroke="url(#tape-stripe)" stroke-width="6"/>
+ <circle cx="32" cy="28" r="14" fill="#ffffff" stroke="#c8452c" stroke-width="3"/>
+ <rect x="27.5" y="23" width="9" height="13" rx="2" fill="#8d969c" stroke="#5d656c" stroke-width=".8"/><rect x="29.5" y="19.5" width="5" height="3.5" fill="#5d656c"/><path d="M37 20h3m-1-3 3-1m-2 6 3 1" stroke="#ef7d52" stroke-width="1.2" stroke-linecap="round"/>
+ <path d="m22 18 20 20" stroke="#c8452c" stroke-width="3" stroke-linecap="round"/>
+ </svg>`;
+ const workshopArt=(()=>{
+  let cells='';["...##.",".P....","......","#..##.","......","...#.."].forEach((row,y)=>row.split('').forEach((x,c)=>{
+   const X=33+c*16,Y=12+y*12;
+   cells+=x==='#'?'<rect x="'+X+'" y="'+Y+'" width="14" height="10" rx="1.5" fill="#f1f3f4" stroke="#98a1a7"/>':x==='P'?'<rect x="'+(X+1)+'" y="'+(Y+1)+'" width="12" height="8" fill="#ffffff" stroke="#e2b42a" stroke-width="2" stroke-dasharray="2 1.5"/>':'<rect x="'+X+'" y="'+Y+'" width="14" height="10" rx="1.5" fill="#f2a27c" stroke="#d8774c" stroke-width=".8"/>';
+  }));
+  return '<svg class="win-art" viewBox="0 0 160 106" aria-hidden="true"><rect x="27" y="6" width="106" height="82" rx="6" fill="#d9dcde" stroke="#a9b1b7"/>'+cells+'<path d="M14 97h132" stroke="#c4c9cc" stroke-width="2"/><circle cx="134" cy="84" r="13" fill="#ffffff" stroke="#c45a35" stroke-width="2"/><path d="m128 84 4 4 8-9" fill="none" stroke="#c45a35" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ })();
  const themes=freeze({
   ice:{name:'南极冰封',device:'喷冷桩',unit:'座',beam:'冷束',target:'水面',dry:'未冻结水面',wet:'已冻结冰面',coverageLabel:'水面已冻结',goal:'冻结全部水面',block:'冰山岩块',complete:'海面已全部冻结',winTitle:'冰封完成，企鹅来啦',winSub:'清爽的冰纹铺满海面，企鹅有了落脚的地方。',emitter:iceEmitter,obstacle:iceBlock,terrain:iceTerrain,art:penguinArt,
    mechanics:'<b>四向喷冷</b> · C0 阻挡格：冰山岩块，截断冷束。',
@@ -310,7 +398,20 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    vars:{page:'#f3f0f9',paper:'#fffdfb',ink:'#635579',muted:'#8b7e9b',line:'#e1d8ed',accent:'#a88a47',soft:'#f6f2fb',frame:'#d9cee8',dry:'#e9e2f2','dry-edge':'#cdbfdf',wet:'#fff9e7','wet-edge':'#e2cd92',beam:'#d0ab53','beam-core':'#fffde9','block-bg':'#e2d9ed','block-edge':'#bdadcf'}},
   museum:{name:'博物馆监控',device:'监控柱',unit:'台',beam:'视线',target:'展厅地面',dry:'未监控地面',wet:'已监控地面',coverageLabel:'目标已监控 · 含展柜',goal:'监控全部地面与玻璃展柜，监控柱不能互拍',block:'展墙',complete:'全馆安保标志亮起，展品安全',winTitle:'全馆监控就位，展品安全',winSub:'18 个目标全部进入监控画面，4 台监控柱彼此不互拍。',emitter:museumEmitter,obstacle:museumWall,icon:museumEmitter,terrain:museumTerrain,art:museumArt,
    mechanics:'<details class="stage-tutorial"><summary>C3 玻璃展柜 + G1 布控规则（展开说明）</summary><p><b>① 玻璃展柜 C3。</b> 不能安装监控柱；视线能穿过它继续前进，遇展墙才停；展柜本身也是监控目标，必须被看到。</p><p><b>② G1 不得互拍。</b> 任何监控柱都不能出现在另一台的监控画面里（同排或同列、中间没有展墙即算，单向拍到也算）。普通地面被多台交叉覆盖没关系。</p></details>',
-   vars:{page:'#eef1f2',paper:'#fbfcfc',ink:'#2f4a55',muted:'#6f8189',line:'#d8e0e3',accent:'#2b8aa3',soft:'#eef5f7',frame:'#cfd8dc',dry:'#e9e5df','dry-edge':'#cfc8be',wet:'#e3f6f8','wet-edge':'#8fd0dc',beam:'#2fb3cf','beam-core':'#effcff','block-bg':'#e4e6e8','block-edge':'#aeb6bb'}}
+   vars:{page:'#eef1f2',paper:'#fbfcfc',ink:'#2f4a55',muted:'#6f8189',line:'#d8e0e3',accent:'#2b8aa3',soft:'#eef5f7',frame:'#cfd8dc',dry:'#e9e5df','dry-edge':'#cfc8be',wet:'#e3f6f8','wet-edge':'#8fd0dc',beam:'#2fb3cf','beam-core':'#effcff','block-bg':'#e4e6e8','block-edge':'#aeb6bb'}},
+  workshop:{name:'车间喷涂',device:'喷涂柱',unit:'台',beam:'漆雾',target:'水泥地',dry:'未喷水泥地',wet:'已喷漆面',coverageLabel:'地面已喷涂',goal:'喷满全部地面，禁漆区保持干净',block:'挡漆板',complete:'图案完成，车间作业完成',winTitle:'图案完成，车间作业完成',winSub:'29 格地面全部喷上漆面，禁漆区一点没沾。',emitter:workshopEmitter,obstacle:workshopBlock,icon:workshopEmitter,terrain:workshopTerrain,art:workshopArt,
+   mechanics:'<details class="stage-tutorial"><summary>E2 短喷嘴 + C1 禁漆区（展开说明）</summary><p><b>① E2 短喷嘴。</b> 每台只喷自身和四个方向各 2 格，遇挡漆板或边界提前停；长通道要分段喷。线头的短横线和淡出圆点表示“射程到此为止”。</p><p><b>② C1 禁漆区（复习花园关的禁覆盖）。</b> 不能放、不能被喷到，但漆雾会穿过它；射程短反而能贴着禁漆区放——只要禁漆区在 2 格之外。</p></details>',
+   c1:{
+    badge:'禁漆',art:tapeArt+'<span class="forbidden-badge" aria-hidden="true">禁漆</span>',legend:'C1 禁漆区',
+    label:' C1 禁覆盖格，禁漆区，不能喷到且不能放设备，漆雾可穿过',
+    aria:hit=>' C1 禁覆盖格，禁漆区，'+(hit?'违规：已被喷到，漆雾继续穿过，不能通关':'保持干净，禁漆，漆雾可穿过')+'，不能放设备',
+    status:(hit,c)=>hit?'违规 · 禁漆区被喷到，不能通关；漆雾仍穿过它向前。':'禁漆区 · '+c+' · 保持干净 ✓ · 短喷嘴射程 2 格',
+    say:list=>'违规：'+list+'的禁漆区被喷到，不能通关。漆雾仍穿过禁漆区继续向前；射程只有 2 格，请收回同排同列 2 格内正对它的喷涂柱。',
+    tap:'是C1 禁漆区：不能放喷涂柱，也不能被喷到；漆雾会穿过它继续向前。射程只有 2 格，离它 3 格以外或隔着挡漆板就安全。',
+    win:'禁漆区保持干净 · 无违规',
+    hint:(depth,c)=>depth===1?'先处理违规：'+c+'的喷涂柱喷到了禁漆区。再点提示，看为什么要先收回它。':depth===2?'禁漆区是C1 禁覆盖格，不是挡漆板；漆雾穿过它继续前进，但经过它本身就已违规。射程只有 2 格：'+c+'和禁漆区同排或同列、相距不超过 2 格，所以一定会喷到。再点提示标位。':'先收回'+c+'的喷涂柱：它的漆雾在 2 格射程内经过禁漆区。若还有违规来源，下一次提示会继续优先处理；请自己点击收回。'
+   },
+   vars:{page:'#eceeef',paper:'#fbfbfa',ink:'#3a4148',muted:'#757d85',line:'#dde1e4',accent:'#c45a35',soft:'#f5f2ef',frame:'#cdd2d6',dry:'#dcdcd7','dry-edge':'#bdbeb8',wet:'#f6b48f','wet-edge':'#df8a5f',beam:'#ef7d52','beam-core':'#fff1e6','block-bg':'#e9ecee','block-edge':'#a9b1b7'}}
  });
  const SOURCE_COLORS=Object.freeze(['#b18a31','#4f8cb6','#c27e79']);
  const states=levels.map(()=>({lamps:[],history:[],hint:null,won:false,everCleared:false,hintsUsed:0}));
@@ -326,7 +427,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  function sourceChip(id,colors,verbose=false){
   return id===undefined?'<span class="source-chip">'+(verbose?'空槽':'—')+'</span>':'<span class="source-chip filled" style="--source-color:'+colors.get(id)+'" title="来源：'+coord(id)+'的灯箱">'+(verbose?coord(id):sourceLabel(id))+'</span>';
  }
- const NEXT_LABELS=Object.freeze({garden:'去花园',stage:'去舞台',museum:'去展馆'});
+ const NEXT_LABELS=Object.freeze({garden:'去花园',stage:'去舞台',museum:'去展馆',workshop:'去车间'});
  function nextLabel(){return active<levels.length-1?(NEXT_LABELS[levels[active+1].theme]||'下一关'):'重玩本关';}
  function next(){if(active<levels.length-1)choose(active+1);else reset();}
  function cancelWin(){if(winTimer!==null){clearTimeout(winTimer);winTimer=null;}}
@@ -341,8 +442,8 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  function say(text,type=''){$('coach').className='coach'+(type?' '+type:'');$('coach-copy').textContent=text;}
  function g1Text(pairs){return pairs.map(([a,b])=>coord(a)+'与'+coord(b)).join('、')+'互相拍到';}
  function sayCoverage(text,type=''){
-  const L=levels[active],cov=E.coverage(L,states[active].lamps);
-  if(cov.violations.length)say('违规：'+cov.violations.map(i=>coord(i)).join('、')+'的仙人掌保护区被洒到，不能通关。水束仍穿过保护区继续向后；请收回导致受水的洒水器。','warn');
+  const L=levels[active],cov=E.coverage(L,states[active].lamps),C1=theme().c1;
+  if(cov.violations.length)say(C1?C1.say(cov.violations.map(i=>coord(i)).join('、')):'违规：'+cov.violations.map(i=>coord(i)).join('、')+'的仙人掌保护区被洒到，不能通关。水束仍穿过保护区继续向后；请收回导致受水的洒水器。','warn');
   else if(L.g1&&cov.emitterHits.length)say('G1 违规：'+g1Text(cov.emitterHits)+'，'+(cov.covered===cov.total?cov.covered+'/'+cov.total+' 虽已全覆盖，':'')+'不能通关。监控柱不能出现在其他监控画面中；请收回其中一台。','warn');
   else if(cov.covered===cov.total&&cov.unmetDouble.length)say('16/16 目标已照亮，但双源靶只到一源，需另一台灯箱。不能通关；请利用固定 / 镜面，为E列第4行送来不同灯箱的光。','warn');
   else say(text,type);
@@ -350,13 +451,13 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  function buildBoard(){
   const L=levels[active],T=theme();
   Object.entries(T.vars).forEach(([key,value])=>document.documentElement.style.setProperty('--'+key,value));$('app').dataset.theme=L.theme;
-  $('brand-mark').innerHTML=T.emitter;$('chapter-icon').innerHTML=T.icon||T.obstacle;$('chapter').textContent=T.name+' · 四关试玩';
+  $('brand-mark').innerHTML=T.emitter;$('chapter-icon').innerHTML=T.icon||T.obstacle;$('chapter').textContent=T.name+' · 五关试玩';
   $('grid-shell').style.setProperty('--n',L.width);$('board').style.setProperty('--n',L.width);
   $('columns').innerHTML=Array.from({length:L.width},(_,i)=>'<span class="axis">'+String.fromCharCode(65+i)+'</span>').join('');
   $('rows').innerHTML=Array.from({length:L.height},(_,i)=>'<span class="axis">'+(i+1)+'</span>').join('');
   $('board').innerHTML=L.cells.map((x,i)=>{
-   const label=coord(i,L)+(x==='#'?' C0 阻挡格，'+T.block+'，不能放设备':x==='P'?' C1 禁覆盖格，仙人掌保护区，禁水且不能放设备':x==='D'?' C2 双源靶，至少两台不同灯箱，不能放设备':x==='N'?' C3 不可放置格，玻璃展柜，不能安装监控柱，视线可穿过，自身也要被监控':x==='/'||x==='\\'?' R1 固定镜面，不能放设备或旋转，非覆盖目标':' '+T.target+'，点击放'+T.device);
-   const art=x==='#'?T.obstacle:x==='P'?cactus+noWater+'<span class="forbidden-badge" aria-hidden="true">禁水</span>':x==='D'?doubleArt+'<span class="special-badge" aria-hidden="true">双照格</span><span class="double-slots" aria-hidden="true"></span>':x==='N'?glassArt+'<span class="watch-badge" aria-hidden="true">已监控</span><span class="forbidden-badge" aria-hidden="true">禁装</span>':x==='/'||x==='\\'?mirrorArt+'<span class="special-badge" aria-hidden="true">反射格</span>':T.terrain;
+   const label=coord(i,L)+(x==='#'?' C0 阻挡格，'+T.block+'，不能放设备':x==='P'?(T.c1?T.c1.label:' C1 禁覆盖格，仙人掌保护区，禁水且不能放设备'):x==='D'?' C2 双源靶，至少两台不同灯箱，不能放设备':x==='N'?' C3 不可放置格，玻璃展柜，不能安装监控柱，视线可穿过，自身也要被监控':x==='/'||x==='\\'?' R1 固定镜面，不能放设备或旋转，非覆盖目标':' '+T.target+'，点击放'+T.device);
+   const art=x==='#'?T.obstacle:x==='P'?(T.c1?T.c1.art:cactus+noWater+'<span class="forbidden-badge" aria-hidden="true">禁水</span>'):x==='D'?doubleArt+'<span class="special-badge" aria-hidden="true">双照格</span><span class="double-slots" aria-hidden="true"></span>':x==='N'?glassArt+'<span class="watch-badge" aria-hidden="true">已监控</span><span class="forbidden-badge" aria-hidden="true">禁装</span>':x==='/'||x==='\\'?mirrorArt+'<span class="special-badge" aria-hidden="true">反射格</span>':T.terrain;
    const cls=x==='#'?' wall':x==='P'?' forbidden':x==='D'?' double':x==='N'?' noplace':x==='/'||x==='\\'?' mirror':'';
    return '<button class="tile'+cls+'" data-cell="'+i+'" aria-label="'+label+'">'+art+'</button>';
   }).join('')+'<svg class="beam-layer" id="beams" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>';
@@ -364,7 +465,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   $('inventory').innerHTML=Array.from({length:L.budget},()=>'<span class="emitter-slot">'+T.emitter+'</span>').join('');
   $('resources').setAttribute('aria-label',T.device+'预算和目标覆盖进度');$('budget-label').textContent='剩余'+T.device;$('coverage-label').textContent=T.coverageLabel;
   $('objective-title').textContent=L.title;$('objective-sub').textContent='用 '+L.budget+' '+T.unit+T.device+'，'+T.goal+'。';$('room-label').textContent=L.name;$('room-size').textContent=L.width+' × '+L.height;$('target-total').textContent=' / '+L.targets.length;$('budget-total').textContent=' / '+L.budget;
-  $('legend-dry').textContent=T.dry;$('legend-wet').textContent=T.wet;$('legend-c1').hidden=L.forbidden.length===0;$('legend-c2').hidden=L.doubles.length===0;$('legend-r1').hidden=L.mirrors.length===0;$('legend-c3').hidden=L.noPlace.length===0;$('legend-g1').hidden=!L.g1;$('mechanics').innerHTML=T.mechanics;$('protection-status').hidden=L.forbidden.length===0;$('double-status').hidden=L.doubles.length===0;$('g1-status').hidden=!L.g1;
+  $('legend-dry').textContent=T.dry;$('legend-wet').textContent=T.wet;$('legend-c1').hidden=L.forbidden.length===0;$('legend-c1-text').textContent=T.c1?T.c1.legend:'C1 禁覆盖格';$('legend-e2').hidden=!L.range;$('legend-c2').hidden=L.doubles.length===0;$('legend-r1').hidden=L.mirrors.length===0;$('legend-c3').hidden=L.noPlace.length===0;$('legend-g1').hidden=!L.g1;$('mechanics').innerHTML=T.mechanics;$('protection-status').hidden=L.forbidden.length===0;$('double-status').hidden=L.doubles.length===0;$('g1-status').hidden=!L.g1;
  }
  function drawBeams(){
   const L=levels[active],s=states[active],svg=$('beams'),bounds=svg.getBoundingClientRect();
@@ -372,12 +473,16 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   svg.setAttribute('viewBox','0 0 '+bounds.width+' '+bounds.height);
   const rects=Array.from($('board').querySelectorAll('.tile'),t=>t.getBoundingClientRect());
   const center=i=>[rects[i].left+rects[i].width/2-bounds.left,rects[i].top+rects[i].height/2-bounds.top];
-  const beams=[],colors=sourceColors(),scale=Math.min(bounds.width,bounds.height)/100;
+  const beams=[],stops=[],colors=sourceColors(),scale=Math.min(bounds.width,bounds.height)/100;
   for(const i of s.lamps)L.traces[i].forEach(trace=>{
    if(!trace.points.length)return;
    // 每一个经过格（包括镜面中心与闭环终点）都保留，不连源点与终点的斜线。
    const points=[center(i),...trace.points.map(p=>center(p.index))];
-   if(trace.end.type!=='loop'){
+   if(trace.end.type==='range'){
+    // E2 射程终点：束线只略出终点格中心，再画垂直短横线 + 淡出圆点，区别于“遇墙/边界停”。
+    const last=trace.end.index,[x,y]=center(last),[dr,dc]=trace.end.direction,size=dc?rects[last].width:rects[last].height,d=size*.26;
+    points.push([x+dc*d,y+dr*d]);stops.push({x:x+dc*d,y:y+dr*d,dr,dc,size});
+   }else if(trace.end.type!=='loop'){
     const last=trace.end.index,[x,y]=center(last),[dr,dc]=trace.end.direction;
     const distance=(dc?rects[last].width:rects[last].height)*.32;
     points.push([x+dc*distance,y+dr*distance]);
@@ -386,6 +491,10 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    const color=L.theme==='stage'?colors.get(i):'var(--beam)';
    beams.push('<polyline class="beam-outer"'+attrs+' style="stroke:'+color+';stroke-width:'+(scale*1.45)+'"/><polyline class="beam-core"'+attrs+' style="stroke-width:'+(scale*.48)+'"/>');
   });
+  for(const p of stops){
+   const h=p.size*.2,a=p.size*.17,b=p.size*.31;
+   beams.push('<path class="spray-stop" d="M'+(p.x+p.dr*h)+' '+(p.y-p.dc*h)+'L'+(p.x-p.dr*h)+' '+(p.y+p.dc*h)+'" style="stroke-width:'+(scale*1.1)+'"/><circle class="spray-dot" cx="'+(p.x+p.dc*a)+'" cy="'+(p.y+p.dr*a)+'" r="'+(scale*.75)+'" opacity=".5"/><circle class="spray-dot" cx="'+(p.x+p.dc*b)+'" cy="'+(p.y+p.dr*b)+'" r="'+(scale*.5)+'" opacity=".22"/>');
+  }
   if(L.g1){
    // G1 冲突：把 a→b 那段视线画成红色虚线（每对一条）。
    for(const [a,b] of E.coverage(L,s.lamps).emitterHits){
@@ -422,13 +531,14 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
    }else if(x==='N'){
     tile.setAttribute('aria-label',coord(i)+' C3 玻璃展柜，'+(cov.count[i]>0?'已监控':'未监控')+'，不能安装监控柱，视线可穿过');
    }else if(x==='P'){
-    tile.querySelector('.forbidden-badge').textContent=cov.count[i]>0?'违规':'禁水';tile.setAttribute('aria-label',coord(i)+' C1 禁覆盖格，仙人掌保护区，'+(cov.count[i]>0?'违规：已被洒到，水束继续穿过，不能通关':'保持干燥，禁水，水束可穿过')+'，不能放设备');
+    if(T.c1){tile.querySelector('.forbidden-badge').textContent=cov.count[i]>0?'违规':T.c1.badge;tile.setAttribute('aria-label',coord(i)+T.c1.aria(cov.count[i]>0));}
+    else{tile.querySelector('.forbidden-badge').textContent=cov.count[i]>0?'违规':'禁水';tile.setAttribute('aria-label',coord(i)+' C1 禁覆盖格，仙人掌保护区，'+(cov.count[i]>0?'违规：已被洒到，水束继续穿过，不能通关':'保持干燥，禁水，水束可穿过')+'，不能放设备');}
    }else if(x==='D'){
     const ids=cov.sources[i];tile.querySelector('.double-slots').innerHTML=[0,1].map(k=>sourceChip(ids[k],colors)).join('');
     tile.setAttribute('aria-label',coord(i)+' C2 双源靶，'+ids.length+'/2 不同来源，'+(ids.length>=2?'合格':'未合格')+'；'+(ids.length?ids.map(id=>coord(id)+'的灯箱').join('、'):'两个空槽')+'；不能放灯箱，同灯重复只算一源');
    }
   }
-  if(L.forbidden.length){$('protection-status').classList.toggle('violation',cov.violations.length>0);$('protection-status').textContent=cov.violations.length?'违规 · 保护区被洒到，不能通关；水束仍向后延伸。':'禁水保护区 · '+coord(L.forbidden[0])+' · 保持干燥 ✓';}
+  if(L.forbidden.length){$('protection-status').classList.toggle('violation',cov.violations.length>0);$('protection-status').textContent=T.c1?T.c1.status(cov.violations.length>0,coord(L.forbidden[0])):cov.violations.length?'违规 · 保护区被洒到，不能通关；水束仍向后延伸。':'禁水保护区 · '+coord(L.forbidden[0])+' · 保持干燥 ✓';}
   if(L.doubles.length){
    const d=cov.doubleStatus[0];$('double-status').classList.toggle('qualified',d.count>=2);
    $('double-status').innerHTML='C2 双照格 · '+coord(d.index)+' · <b>'+d.count+'/2</b> 不同灯箱 · '+(d.count>=2?'合格 ✓':d.count===1?'只到一源，需另一台灯箱':'未合格，等待两源')+'<span class="status-sources">'+[0,1].map(k=>sourceChip(d.sourceIds[k],colors,true)).join('')+'</span>';
@@ -446,7 +556,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  function tap(i){
   const L=levels[active],T=theme(),s=states[active],t=E.toggle(L,s.lamps,i);
   if(t.type==='wall'){sayCoverage(coord(i)+'是C0 阻挡格：'+T.block+'不能放设备，'+T.beam+'也不能穿过。','warn');return;}
-  if(t.type==='forbidden'){sayCoverage(coord(i)+'是C1 禁覆盖格：仙人掌保护区不能放设备，必须保持干燥；水束会穿过它继续向后。','warn');return;}
+  if(t.type==='forbidden'){sayCoverage(coord(i)+(T.c1?T.c1.tap:'是C1 禁覆盖格：仙人掌保护区不能放设备，必须保持干燥；水束会穿过它继续向后。'),'warn');return;}
   if(t.type==='noplace'){
    const cov=E.coverage(L,s.lamps),text=coord(i)+'是'+t.reason+(cov.count[i]>0?' 它当前已被监控。':' 它当前还未被监控。');
    if(cov.emitterHits.length)sayCoverage(text,'warn');else say(text,'warn');return;
@@ -458,7 +568,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   if(t.type==='budget'){
    const cov=E.coverage(L,s.lamps);sayCoverage(T.device+'用完了，还有 '+(cov.total-cov.covered)+' 格未覆盖。点设备收回，再调整位置。','warn');$('board').classList.remove('blocked');void $('board').offsetWidth;$('board').classList.add('blocked');return;
   }
-  const cov=E.coverage(L,t.lamps);let text=t.type==='remove'?'已收回'+coord(i)+'的'+T.device+'，覆盖已重新计算。':'已放在'+coord(i)+'。'+T.beam+'沿横纵延伸，'+(L.mirrors.length?'遇固定 / 镜面转向，':'')+(L.noPlace.length?'穿过玻璃展柜，':'')+'遇'+T.block+'停止。';
+  const cov=E.coverage(L,t.lamps);let text=t.type==='remove'?'已收回'+coord(i)+'的'+T.device+'，覆盖已重新计算。':'已放在'+coord(i)+'。'+(L.range?T.beam+'向四个方向各喷 '+L.range+' 格就停，遇'+T.block+'提前停止。':T.beam+'沿横纵延伸，'+(L.mirrors.length?'遇固定 / 镜面转向，':'')+(L.noPlace.length?'穿过玻璃展柜，':'')+'遇'+T.block+'停止。');
   if(t.lamps.length===L.budget&&cov.covered<cov.total)text=T.device+'用完了，还有 '+(cov.total-cov.covered)+' 格未覆盖。可点设备收回，或撤销再试。';
   commit(t.lamps,text,t.type,i);
  }
@@ -489,10 +599,10 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   const h=s.hint;h.depth=Math.min(3,h.depth+1);
   if(h.wrong!==undefined){
    if(h.violation){
-    h.text=h.depth===1?'先处理违规：有洒水器让仙人掌保护区受水。再点提示，看为什么要先收回它。':h.depth===2?'保护区是C1 禁覆盖格，不是石墙；水束穿过后继续前进，但经过它本身就已违规。应先收回导致受水的设备，再补普通土地。再点提示标位。':'先收回'+coord(h.index)+'的洒水器：它的水束经过仙人掌保护区。若还有违规来源，下一次提示会继续优先处理；请自己点击收回。';
+    h.text=T.c1?T.c1.hint(h.depth,coord(h.index)):h.depth===1?'先处理违规：有洒水器让仙人掌保护区受水。再点提示，看为什么要先收回它。':h.depth===2?'保护区是C1 禁覆盖格，不是石墙；水束穿过后继续前进，但经过它本身就已违规。应先收回导致受水的设备，再补普通土地。再点提示标位。':'先收回'+coord(h.index)+'的洒水器：它的水束经过仙人掌保护区。若还有违规来源，下一次提示会继续优先处理；请自己点击收回。';
    }else if(h.g1){
     h.text=h.depth===1?'先处理 G1 冲突：'+coord(h.index)+'与'+coord(h.partner)+'互相拍到。再点提示，看为什么要收回其中一台。':h.depth===2?'G1 规定监控柱不能出现在其他监控画面中：两台同排或同列、中间没有展墙就会互拍（单向拍到也算），即使全部目标都已监控也不能通关。普通地面被交叉覆盖没关系。再点提示标位。':'先收回'+coord(h.index)+'的监控柱：它与'+coord(h.partner)+'互相拍到。若还有冲突，下一次提示会继续优先处理；请自己点击收回。';
-   }else h.text=h.depth===1?'当前布局需要挪动一'+T.unit+T.device+'。再点提示，看看为什么不能保留。':h.depth===2?'本关已穷举验证：在 '+L.budget+' '+T.unit+'预算内，保留这个位置无法完成合法全覆盖。'+(L.doubles.length?'本关还须满足双源靶，并借固定镜面反射补入独立来源；16/16不等于双源合格。':L.g1?'本关还须满足 G1 不互拍，玻璃展柜自身也要被看到。':'先腾出设备，再考虑未覆盖区域。')+'再点提示标位。':'先收回'+coord(h.index)+'的'+T.device+'，再重新选位。提示不会替你移动设备。';
+   }else h.text=h.depth===1?'当前布局需要挪动一'+T.unit+T.device+'。再点提示，看看为什么不能保留。':h.depth===2?'本关已穷举验证：在 '+L.budget+' '+T.unit+'预算内，保留这个位置无法完成合法全覆盖。'+(L.doubles.length?'本关还须满足双源靶，并借固定镜面反射补入独立来源；16/16不等于双源合格。':L.g1?'本关还须满足 G1 不互拍，玻璃展柜自身也要被看到。':L.range?'射程只有 '+L.range+' 格：长通道要分段喷，同排同列 2 格内正对禁漆区的位置也不能放。':'先腾出设备，再考虑未覆盖区域。')+'再点提示标位。':'先收回'+coord(h.index)+'的'+T.device+'，再重新选位。提示不会替你移动设备。';
   }else h.text=h.depth===1?h.notice+' 再点提示可查看思路。':h.depth===2?h.reason+' 再点一次提示可标出位置。':h.reveal+' 请自己点击标记位置，提示不会自动放设备。';
   paintHint();say(h.text,'hint-coach');
  }
@@ -504,10 +614,13 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  }
  function openWin(){
   const L=levels[active],T=theme(),s=states[active],all=states.every(x=>x.everCleared);
-  setModal(T.winTitle,T.winSub,'<div class="stats"><div class="stat"><b>'+s.lamps.length+' / '+L.budget+'</b>设备使用</div><div class="stat"><b>'+L.targets.length+' / '+L.targets.length+'</b>'+(L.doubles.length?'照亮目标（含双源靶）':L.noPlace.length?'监控目标（含展柜）':'普通目标覆盖')+'</div></div>'+(L.forbidden.length?'<p>保护区保持干燥 · 无违规</p>':'')+(L.doubles.length?'<p>双源靶 E列第4行 · 2/2 不同灯箱 · 合格</p>':'')+(L.noPlace.length?'<p>'+L.noPlace.length+' 个玻璃展柜均已监控 · 展品安全</p>':'')+(L.g1?'<p>G1 布控 · 监控柱彼此不互拍 · 无冲突</p>':''),[{label:'回看棋盘',secondary:true,run:()=>{}},{label:nextLabel(),run:next}],T.art,all?'四关均已完成；没有计时，也不按尝试次数评分。':'没有计时，也不按尝试次数评分。');
+  setModal(T.winTitle,T.winSub,'<div class="stats"><div class="stat"><b>'+s.lamps.length+' / '+L.budget+'</b>设备使用</div><div class="stat"><b>'+L.targets.length+' / '+L.targets.length+'</b>'+(L.doubles.length?'照亮目标（含双源靶）':L.noPlace.length?'监控目标（含展柜）':'普通目标覆盖')+'</div></div>'+(L.forbidden.length?'<p>'+(T.c1?T.c1.win:'保护区保持干燥 · 无违规')+'</p>':'')+(L.range?'<p>E2 短喷嘴 · 每台四向各喷 '+L.range+' 格 · 分段喷满</p>':'')+(L.doubles.length?'<p>双源靶 E列第4行 · 2/2 不同灯箱 · 合格</p>':'')+(L.noPlace.length?'<p>'+L.noPlace.length+' 个玻璃展柜均已监控 · 展品安全</p>':'')+(L.g1?'<p>G1 布控 · 监控柱彼此不互拍 · 无冲突</p>':''),[{label:'回看棋盘',secondary:true,run:()=>{}},{label:nextLabel(),run:next}],T.art,all?'五关均已完成；没有计时，也不按尝试次数评分。':'没有计时，也不按尝试次数评分。');
  }
  function help(){
   cancelWin();const L=levels[active],T=theme(),hasProtection=L.forbidden.length>0;
+  if(L.range){
+   setModal('车间喷涂 · 看图分两步','同一种四向短喷嘴喷涂柱，不选朝向，射程 '+L.range+' 格。','<p><strong>① E2 短喷嘴：每个方向最多喷 '+L.range+' 格。</strong><br>点水泥地放喷涂柱，再点收回；每台喷自身，再向上下左右各喷最多 '+L.range+' 格，遇挡漆板或边界提前停止。漆雾线只画到射程终点，终点的短横线和淡出圆点表示“喷到这里就停”，和撞上挡漆板停下不同。长通道（比如整条第5行）一台喷不满，要分段喷。</p><p><strong>② C1 禁漆区（复习花园关的禁覆盖）。</strong><br>B列第2行贴着斜纹胶带：不能放喷涂柱，也不能被喷到；漆雾会穿过它继续向前，所以只要经过它就已违规。射程短反而是机会：禁漆区在 2 格之外（或隔着挡漆板）就喷不到，可以贴着它同排、同列放。29/29 全覆盖但喷到禁漆区，仍不能通关。</p><p>预算 6 台。展开提示会依次给观察、原因、标位，绝不代放；方向键移焦点，Enter／空格放置或收回。</p>',[{label:'开始尝试',run:()=>{}}],'','音效默认关闭；可撤销、重置，没有计时。');return;
+  }
   if(L.g1||L.noPlace.length){
    setModal('博物馆监控 · 看图分两步','同一种四面摄像头监控柱，不选朝向。','<p><strong>① 玻璃展柜 C3：不能放，但要被看到。</strong><br>点展厅地面放监控柱，再点收回；每台监控自身并四向看出去，遇展墙或边界停止。A列第1行、A列第2行、E列第2行是玻璃展柜：不能安装监控柱，视线能穿过继续前进，展柜本身也算监控目标（共 18 个目标）。</p><p><strong>② G1 布控规则：监控柱不得互拍。</strong><br>任何一台监控柱都不能出现在另一台的画面里——同排或同列且中间没有展墙就算拍到，单向拍到也算。互拍的两台会加红框和「互拍」标记，对应视线画成红色虚线。普通地面被几台交叉覆盖都没关系。18/18 全覆盖但有互拍，仍不能通关。</p><p>预算 4 台。展开提示会依次给观察、原因、标位，绝不代放；方向键移焦点，Enter／空格放置或收回。</p>',[{label:'开始尝试',run:()=>{}}],'','音效默认关闭；可撤销、重置，没有计时。');return;
   }
@@ -518,7 +631,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
   setModal('怎样填满这张棋盘',hasProtection?'四向覆盖，额外保护禁水区域。':'先学放置、阻挡和有限预算。','<p><strong>1. 点普通目标放'+T.device+'，再点收回。</strong><br>已覆盖的普通格也能放，放置顺序不影响结果。</p><p><strong>2. 设备覆盖自身，并向四个方向发射。</strong><br>遇 C0 阻挡格或边界才停止，C0 不需要覆盖。</p><p><strong>3. 在预算内覆盖全部普通目标。</strong><br>数量用完时可移除、撤销、重置。'+(hasProtection?'同时检查保护区。':'本关没有额外特殊格。')+'</p>'+extra+'<p>提示逐步解释、最终标位，不会自动放设备。方向键移动焦点，Enter 或空格放置／收回。</p>',[{label:'开始尝试',run:()=>{}}],'','音效默认关闭；无计时压力。');
  }
  function scope(){
-  cancelWin();setModal('本版规则与范围','fill it up · 单文件离线 · 玩法原型 v4','<p><strong>关卡01 · 南极冰封：</strong><br>4×4，11普通目标、5个C0 阻挡格、无C1；预算2座喷冷桩。行配置：<span class="mono">.... / #.## / .... / #..#</span>；0base答案[1,10]。</p><p><strong>关卡02 · 花园洒水：</strong><br>5×5，17普通目标、7个C0 阻挡格、1个C1 禁覆盖格；预算3个固定洒水器。行配置：<span class="mono">..... / ..P.# / ..### / ..... / #..##</span>；0base答案[3,15,21]。仙人掌在C列第2行，禁放设备、禁受水，但水束会穿过。</p><p><strong>关卡03 · T11舞台布光 · C2 + R1：</strong><br>5×5，15普通目标+1个C2 双照格（双源靶），共16目标；8个C0、1个R1，无C1。行配置：<span class="mono">[&quot;#....&quot;,&quot;###.#&quot;,&quot;.....&quot;,&quot;##/.D&quot;,&quot;...#.&quot;]</span>；预算3台同型四向遮扉灯箱，0base答案[3,14,22]。镜面在C列第4行index17，双源靶在E列第4行index19。镜面固定不旋转、禁放、非目标；C2禁放、透光且须至少两台不同灯箱照到。</p><p><strong>关卡04 · T07博物馆监控 · C3 + G1：</strong><br>5×5，15普通格+3个C3 不可放置格（玻璃展柜），共18目标；7个C0 展墙。行配置：<span class="mono">[&quot;N..##&quot;,&quot;N#.#N&quot;,&quot;.....&quot;,&quot;#..#.&quot;,&quot;....#&quot;]</span>；预算4台四面摄像头监控柱，0base答案[2,10,19,21]（C列第1行、A列第3行、E列第4行、B列第5行）。展柜在A列第1行、A列第2行、E列第2行（index0/5/9）：禁放、透光、自身须被监控。本关开启G1：任一监控柱的视线（不含自身格）命中另一台所在格即违规，单向即算；普通格交叉覆盖合法。K≤3无解、K=4唯一解；关闭G1时K=4有2解，若展柜可放置则有12解。[2,10,14,21]虽18/18，但A列第3行与E列第3行互相拍到，不能通关。</p><p>开页对四关按普通candidates穷举0至预算设备，交叉校验最少设备数、唯一合法解与答案。胜利由覆盖、C1零违规、C2两源、G1零互拍、预算与合法候选判断；不会按是否点击答案强制胜利。</p><p><strong>已实现：</strong>E0基础四向发射器；C0阻挡、C1禁放禁覆盖但透过、C2不同源双照、C3不可放置但透光且需覆盖、R1固定反射、G1发射器不得互照（仅第四关开启，前三关关闭、允许互照）。/将(dr,dc)转(-dc,-dr)，反斜杠将其转(dc,dr)；射线按visited(cell,direction)终止，单设备全路径去重再计来源。</p><p><strong>未实现：</strong>C4邻接计数、E1、E2、E3、E4、E5、R2。不引入其他延期项。</p><p>地图固定、提示不代放。水面冻结、土地花开、舞台亮起、展厅监控仅表现当前覆盖，移除设备后重新计算。内嵌SVG与合成音效，无外部字体、图片、脚本、网络请求或storage；选关进度仅在本次打开的内存，刷新重置。公开状态只读，不能直接设置通关。</p>',[{label:'回到游戏',run:()=>{}}],'','这是四关本地试玩，不是量产关卡生成器；声音默认关闭。');
+  cancelWin();setModal('本版规则与范围','fill it up · 单文件离线 · 玩法原型 v5','<p><strong>关卡01 · 南极冰封：</strong><br>4×4，11普通目标、5个C0 阻挡格、无C1；预算2座喷冷桩。行配置：<span class="mono">.... / #.## / .... / #..#</span>；0base答案[1,10]。</p><p><strong>关卡02 · 花园洒水：</strong><br>5×5，17普通目标、7个C0 阻挡格、1个C1 禁覆盖格；预算3个固定洒水器。行配置：<span class="mono">..... / ..P.# / ..### / ..... / #..##</span>；0base答案[3,15,21]。仙人掌在C列第2行，禁放设备、禁受水，但水束会穿过。</p><p><strong>关卡03 · T11舞台布光 · C2 + R1：</strong><br>5×5，15普通目标+1个C2 双照格（双源靶），共16目标；8个C0、1个R1，无C1。行配置：<span class="mono">[&quot;#....&quot;,&quot;###.#&quot;,&quot;.....&quot;,&quot;##/.D&quot;,&quot;...#.&quot;]</span>；预算3台同型四向遮扉灯箱，0base答案[3,14,22]。镜面在C列第4行index17，双源靶在E列第4行index19。镜面固定不旋转、禁放、非目标；C2禁放、透光且须至少两台不同灯箱照到。</p><p><strong>关卡04 · T07博物馆监控 · C3 + G1：</strong><br>5×5，15普通格+3个C3 不可放置格（玻璃展柜），共18目标；7个C0 展墙。行配置：<span class="mono">[&quot;N..##&quot;,&quot;N#.#N&quot;,&quot;.....&quot;,&quot;#..#.&quot;,&quot;....#&quot;]</span>；预算4台四面摄像头监控柱，0base答案[2,10,19,21]（C列第1行、A列第3行、E列第4行、B列第5行）。展柜在A列第1行、A列第2行、E列第2行（index0/5/9）：禁放、透光、自身须被监控。本关开启G1：任一监控柱的视线（不含自身格）命中另一台所在格即违规，单向即算；普通格交叉覆盖合法。K≤3无解、K=4唯一解；关闭G1时K=4有2解，若展柜可放置则有12解。[2,10,14,21]虽18/18，但A列第3行与E列第3行互相拍到，不能通关。</p><p><strong>关卡05 · T17车间喷涂 · E2 + C1：</strong><br>6×6，29普通目标（全部可放）、6个C0 挡漆板、1个C1 禁漆区（B列第2行 index7）；无C2/C3/R1，G1关闭。行配置：<span class="mono">[&quot;...##.&quot;,&quot;.P....&quot;,&quot;......&quot;,&quot;#..##.&quot;,&quot;......&quot;,&quot;...#..&quot;]</span>；关卡字段 <span class="mono">range:2</span>，预算6台短喷嘴喷涂柱，0base答案[0,11,14,26,31,35]（A列第1行、F列第2行、C列第3行、C列第5行、B列第6行、F列第6行）。每台覆盖自身+四个方向各最多2格，遇C0/边界提前停止；C1仍透过但被命中即违规。K≤5无解、K=6唯一解；若射程无限（E0）则K=7才有解（20解）；若取消C1约束则K=6有4解。[0,8,17,25,30,34]虽29/29全覆盖，但C列第2行的漆雾喷到禁漆区，不能通关。</p><p>开页对五关交叉校验最少设备数、唯一合法解与答案：组合数不超过20万的前四关按普通candidates穷举0至预算设备（与v4相同）；第五关约59万组合，改用剪枝DFS——按“第一个未满足的目标”只分支能覆盖它的候选，同层已试候选在后续兄弟分支排除以免重复，C1违规/G1互拍出现即剪枝，数到2个解即停。胜利由覆盖、C1零违规、C2两源、G1零互拍、预算与合法候选判断；不会按是否点击答案强制胜利。</p><p><strong>已实现：</strong>E0基础四向发射器；E2限射程发射器（关卡字段range，射线逐格累计步数，超过range即停；traces/paths/hitSets共用截断后的路径；仅第五关range=2，缺省=无限射程）；C0阻挡、C1禁放禁覆盖但透过、C2不同源双照、C3不可放置但透光且需覆盖、R1固定反射、G1发射器不得互照（仅第四关开启，其余关关闭、允许互照）。/将(dr,dc)转(-dc,-dr)，反斜杠将其转(dc,dr)；射线按visited(cell,direction)终止，单设备全路径去重再计来源。</p><p><strong>未实现：</strong>C4邻接计数、E1、E3、E4、E5、R2。不引入其他延期项。</p><p>地图固定、提示不代放。水面冻结、土地花开、舞台亮起、展厅监控、车间喷漆仅表现当前覆盖，移除设备后重新计算。内嵌SVG与合成音效，无外部字体、图片、脚本、网络请求或storage；选关进度仅在本次打开的内存，刷新重置。公开状态只读，不能直接设置通关。</p>',[{label:'回到游戏',run:()=>{}}],'','这是五关本地试玩，不是量产关卡生成器；声音默认关闭。');
  }
  $('board').addEventListener('click',e=>{const tile=e.target.closest('[data-cell]');if(tile)tap(Number(tile.dataset.cell));});
  $('board').addEventListener('keydown',e=>{
@@ -532,7 +645,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cur
  modal.addEventListener('close',()=>{if(restoreFocus&&document.contains(restoreFocus))restoreFocus.focus({preventScroll:true});});
  window.FillItUp=Object.freeze({getState:()=>{
   const s=states[active],cov=E.coverage(levels[active],s.lamps);
-  return freeze({active,lamps:s.lamps.slice(),won:E.won(levels[active],s.lamps),remaining:levels[active].budget-s.lamps.length,coverage:cov.covered,covered:cov.covered,total:cov.total,count:cov.count,sources:cov.sources,doubleStatus:cov.doubleStatus,unmetDouble:cov.unmetDouble,cleared:states.map(x=>x.everCleared),hintDepth:s.hint?s.hint.depth:0,history:s.history.length,violations:cov.violations.slice(),theme:levels[active].theme,g1:levels[active].g1,emitterHits:cov.emitterHits,conflictIds:cov.conflictIds,noPlace:levels[active].noPlace.slice(),levelCount:levels.length});
+  return freeze({active,lamps:s.lamps.slice(),won:E.won(levels[active],s.lamps),remaining:levels[active].budget-s.lamps.length,coverage:cov.covered,covered:cov.covered,total:cov.total,count:cov.count,sources:cov.sources,doubleStatus:cov.doubleStatus,unmetDouble:cov.unmetDouble,cleared:states.map(x=>x.everCleared),hintDepth:s.hint?s.hint.depth:0,history:s.history.length,violations:cov.violations.slice(),theme:levels[active].theme,g1:levels[active].g1,emitterHits:cov.emitterHits,conflictIds:cov.conflictIds,noPlace:levels[active].noPlace.slice(),range:levels[active].range,levelCount:levels.length});
  },audits,levels,api:E});
  window.addEventListener('resize',drawBeams);
  buildBoard();render();say(levels[active].intro);updateSound();
