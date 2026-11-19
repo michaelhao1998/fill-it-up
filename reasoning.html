@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>fill it up · 推理难度体验 v1（10 关样本）</title>
+<style>
+:root{--page:#f4f6f7;--card:#fff;--tile:#fff;--wet:#cfe8f5;--wall:#cdd6dc;--accent:#2b7fa8;--beam:#4aa3cc;--ink:#223038;--muted:#6c7b83;--line:#dde4e8;--warn:#b3531f;--ok:#1d7a5a;--bad:#b4392f;--gold:#d9a000}
+[data-theme="ice"]{--page:#eef7fc;--wet:#bfe2f4;--wall:#c8d7df;--accent:#2b7fa8;--beam:#4aa3cc}
+[data-theme="garden"]{--page:#f3f7ee;--tile:#fffdf8;--wet:#cfe6b4;--wall:#d8d3c2;--accent:#5b8436;--beam:#79a84b}
+[data-theme="stage"]{--page:#f6f2fb;--tile:#fffdf9;--wet:#f5e2a8;--wall:#d6d2dd;--accent:#8a63ae;--beam:#c79a3e}
+[data-theme="museum"]{--page:#f2f6f7;--wet:#bfe0e6;--wall:#cdd6d9;--accent:#3b6d78;--beam:#4b97a5}
+[data-theme="fire"]{--page:#fbf3ee;--tile:#fffdfa;--wet:#c7dce8;--wall:#d9d2ca;--accent:#b45b2c;--beam:#3f8fb8}
+[data-theme="space"]{--page:#f1f5f7;--wet:#c9e6e9;--wall:#cbd6dc;--accent:#36718c;--beam:#4fa3ae}
+[data-theme="warehouse"]{--page:#f8f5ee;--tile:#fffdf8;--wet:#d9e9c4;--wall:#d8d0bd;--accent:#6a7c34;--beam:#84a748}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:"Microsoft YaHei","微软雅黑",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+.num{font-family:"IBM Plex Mono",Consolas,monospace}
+#app{max-width:440px;margin:0 auto;padding:10px 12px 18px;position:relative;min-height:100vh}
+.top{display:flex;align-items:center;gap:8px;font-size:12px}
+.top .pill{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.top .pill b{font-size:13px}
+.top .sp{flex:1}
+.top button{border:1px solid var(--line);background:#fff;border-radius:8px;height:28px;padding:0 9px;font:12px inherit;font-family:inherit;color:var(--ink);cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:9px}
+.title{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.title h1{font-size:16px;margin:0}
+.tier{font-size:11px;padding:1px 7px;border-radius:5px;color:#fff;background:#7b8a91}
+.tier.t0{background:#5a9a72}.tier.t1{background:#3f86a8}.tier.t2{background:#c07b2c}.tier.t3{background:#b4392f}
+.sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.mechs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.mechs span{font-size:11px;background:#f2f5f6;border:1px solid var(--line);border-radius:6px;padding:2px 6px;line-height:1.45}
+.mechs span b{color:var(--accent)}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.hud div{background:#f6f8f9;border-radius:8px;padding:5px 6px;text-align:center;font-size:11px;color:var(--muted)}
+.hud div b{display:block;font-size:17px;color:var(--ink);font-family:"IBM Plex Mono",Consolas,monospace}
+.hud .low b{color:var(--bad)}
+.boardwrap{position:relative;margin:10px auto 0;touch-action:none;user-select:none;-webkit-user-select:none}
+.board{display:grid;gap:3px;position:relative}
+.cell{position:relative;aspect-ratio:1/1;border-radius:7px;background:var(--tile);border:1px solid var(--line);overflow:hidden;cursor:pointer}
+.cell.wet{background:var(--wet)}
+.cell.wall{background:var(--wall);cursor:default;border-color:transparent}
+.cell.noplace{background:#e7f2fa;border:1.5px dashed #8bb8d4;cursor:default}
+.cell.noplace.wet{background:#bfe0f2}
+.cell.double{background:#fff5d8;border:1.5px solid #d6b25f;cursor:default}
+.cell.double.full{background:#ffe7a3}
+.cell.protect{background:#fff3f1;border:1.5px dashed #d47e72;cursor:default}
+.cell.protect.hit{background:#f9c9c2;border:2px solid var(--bad)}
+.cell.mirror{background:#eef1f8;border-color:#9cabc4;cursor:default}
+.cell .terrain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
+.cell .terrain .wet-detail{display:none}.cell.wet .terrain .wet-detail{display:block}.cell.wet .terrain .dry-detail{display:none}
+.cell .obs{position:absolute;inset:0}.cell .obs svg{width:100%;height:100%}
+.cell .lbl{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:9px;line-height:1.1;color:var(--muted);pointer-events:none}
+.cell .ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cell .ico svg{width:70%;height:70%}
+.cell .slots{position:absolute;top:4px;left:0;right:0;display:flex;justify-content:center;gap:4px;pointer-events:none}
+.cell .slots i{width:9px;height:9px;border-radius:50%;border:1.5px solid #b48c35;background:#fff}
+.cell .dev{position:absolute;inset:7%;border-radius:8px;background:#fff;border:2px solid var(--dc,var(--accent));z-index:3;pointer-events:none}
+.cell .dev svg{width:100%;height:100%}
+.cell .dev .rng{position:absolute;right:-5px;top:-6px;background:var(--warn);color:#fff;border-radius:7px;min-width:14px;height:14px;font:9px/14px Consolas,monospace;text-align:center}
+.cell.conflict .dev{border-color:var(--bad);box-shadow:0 0 0 3px rgba(180,57,47,.25)}
+.cell.hintcell{box-shadow:inset 0 0 0 3px var(--gold)}
+.cell.hintwrong{box-shadow:inset 0 0 0 3px var(--bad)}
+.cell.pv{outline:2px solid var(--accent);outline-offset:-2px}
+.cell.pvnew::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(43,127,168,.18) 0 4px,transparent 4px 8px);pointer-events:none;z-index:2}
+.coord{position:absolute;font-size:9px;color:var(--muted);font-family:Consolas,monospace}
+#beams{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
+.status{font-size:12px;line-height:1.55;margin-top:8px;padding:7px 9px;border-radius:8px;background:#f2f6f7;color:var(--muted);min-height:36px}
+.status.bad{background:#fdeeeb;color:var(--bad)}.status.ok{background:#eaf6f0;color:var(--ok)}.status.info{background:#eef5fa;color:#2b6a88}
+.actions{display:flex;gap:6px;margin-top:9px}
+.actions button{flex:1;height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font:13px "Microsoft YaHei",sans-serif;cursor:pointer}
+.actions button:disabled{opacity:.45;cursor:not-allowed}
+.actions button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.tip{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.55}
+.levels{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.lvbtn{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.lvbtn .r1{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600}
+.lvbtn .r2{font-size:11px;color:var(--muted)}
+.lvbtn .done{margin-left:auto;color:var(--ok);font-size:12px}
+.lvbtn .free{font-size:10px;color:var(--ok);border:1px solid #a9d3be;border-radius:4px;padding:0 4px}
+dialog{border:none;border-radius:14px;padding:0;width:min(92vw,420px);max-height:88vh;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,26,30,.45)}
+.dlg{padding:14px 15px 15px;overflow:auto;max-height:88vh}
+.dlg h2{margin:0 0 6px;font-size:17px}
+.dlg p{font-size:13px;line-height:1.6;margin:6px 0}
+.dlg table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.dlg td,.dlg th{border-bottom:1px solid var(--line);padding:5px 4px;text-align:left;vertical-align:top}
+.dlg th{color:var(--muted);font-weight:500}
+.dlg .row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.dlg .row button{flex:1;min-width:64px;padding:0 4px;height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;font:13px "Microsoft YaHei",sans-serif;cursor:pointer}
+.dlg .row button.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dlg .row button.on{background:#223038;color:#fff}
+.chain{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.65}
+.chain .tg{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:4px;color:#fff;vertical-align:1px}
+.tg.easy{background:#5a9a72}.tg.mid{background:#3f86a8}.tg.deep{background:#c07b2c}.tg.guess{background:#b4392f}
+.form{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;font-size:13px}
+.form input{height:30px;border:1px solid var(--line);border-radius:7px;padding:0 7px;font:13px Consolas,monospace;width:100%}
+textarea{width:100%;height:150px;font:11px/1.5 Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:6px}
+#coachbox{position:absolute;left:10px;right:10px;z-index:30;background:#fffdf3;border:2px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6;box-shadow:0 6px 18px rgba(0,0,0,.18);display:none}
+#coachbox.on{display:block}
+#coachbox b{color:#8a5a00}
+#coachbox .cb{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+#coachbox button{height:30px;padding:0 12px;border-radius:8px;border:1px solid #d9a000;background:#f0b400;color:#3b2a00;font:12px "Microsoft YaHei",sans-serif;cursor:pointer}
+#coachbox button.ghost{background:#fff;color:#8a5a00}
+.board.locked .cell{cursor:default}
+.board.locked .cell.focus{cursor:pointer;box-shadow:inset 0 0 0 3px var(--gold);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 5px rgba(217,160,0,.45)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app" data-theme="stage">
+  <div class="top">
+    <span class="pill">体力 <b class="num" id="st">50</b><span class="num" id="stmax">/50</span></span>
+    <span class="pill num" id="regen" title="下一点体力恢复">满</span>
+    <span class="sp"></span>
+    <button id="btn-levels">选关</button>
+    <button id="btn-log">体验记录</button>
+    <button id="btn-admin">后台</button>
+  </div>
+
+  <section id="menu" class="card">
+    <div class="title"><h1>推理难度体验 · 10 关样本</h1></div>
+    <p class="sub">每关唯一解、预算即最少设备数。<b>按住格子可预览覆盖范围</b>（不放置、不扣撤回）；点一下放置；点已放的设备会收回，<b>收回和撤销都消耗撤回次数</b>。撤回用完且设备摆满仍未通关即失败。<br>开局扣体力，通关返还；失败不返还。第 1 关有新手指引。</p>
+    <div class="levels" id="levels"></div>
+    <p class="tip">档位只用于你校准难度：入门 / 普通 / 挑战 / 难题。通关或失败后可查看本关的推理链与生成器测得的难度数据，并给出主观评价，最后在“体验记录”里一键复制发回。</p>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="card">
+      <div class="title"><h1 id="lvtitle"></h1><span class="tier" id="lvtier"></span></div>
+      <div class="sub" id="lvgoal"></div>
+      <div class="mechs" id="lvmechs"></div>
+      <div class="hud">
+        <div id="hud-dev">设备<b class="num" id="h-dev">0/0</b></div>
+        <div id="hud-undo">撤回剩余<b class="num" id="h-undo">5</b></div>
+        <div>已覆盖<b class="num" id="h-cov">0/0</b></div>
+      </div>
+      <div class="boardwrap" id="bw">
+        <div class="board" id="board"></div>
+        <svg id="beams"></svg>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="actions">
+        <button id="btn-undo">撤销</button>
+        <button id="btn-hint">提示</button>
+        <button id="btn-restart">重开</button>
+        <button id="btn-quit">放弃</button>
+      </div>
+      <p class="tip">按住 0.3 秒预览：虚线是这一台会照到的范围，斜纹格是新增覆盖；预览不放置、不扣撤回。</p>
+    </div>
+    <div id="coachbox"><div id="coachtext"></div><div class="cb"><button class="ghost" id="coachskip">跳过指引</button><button id="coachnext">下一步</button></div></div>
+  </section>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgbody"></div></dialog>
+
+<script id="data" type="application/json">{"levels":[{"id":1,"theme":"T11","tier":"入门","w":4,"h":4,"types":[{"key":"A","kind":"E0"}],"mech":[],"g1":false,"rows":["....","##.#","##..","#..."],"kStar":2,"answer":[{"cell":2,"coord":"C1","type":"A"},{"cell":15,"coord":"D4","type":"A"}],"metrics":{"placements":2,"easyShare":1,"opening":"D","count":{"T1":0,"T2":0,"D":2,"T3":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":4,"perStep":2},"steps":[{"tier":"D","why":["路口推理：4 个位置里它照到的最多且包含其余"],"target":"A1","place":["C1"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：4 个位置里它照到的最多且包含其余"],"target":"D4","place":["D4"],"cands":null,"worstCost":0}]},{"id":2,"theme":"T11","tier":"入门","w":4,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":["R1"],"g1":false,"rows":[".#..",".#..","../.",".#..",".#.#"],"kStar":2,"answer":[{"cell":8,"coord":"A3","type":"A"},{"cell":11,"coord":"D3","type":"A"}],"metrics":{"placements":2,"easyShare":1,"opening":"D","count":{"T1":0,"T2":0,"D":2,"T3":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":4,"perStep":2},"steps":[{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"target":"A1","place":["A3"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"target":"D3","place":["D3"],"cands":null,"worstCost":0}]},{"id":3,"theme":"T02","tier":"普通","w":5,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":["C3"],"g1":false,"rows":["#..#.",".....","N.N.#","....#",".#..N"],"kStar":4,"answer":[{"cell":9,"coord":"E2","type":"A"},{"cell":11,"coord":"B3","type":"A"},{"cell":15,"coord":"A4","type":"A"},{"cell":22,"coord":"C5","type":"A"}],"metrics":{"placements":4,"easyShare":0.75,"opening":"D","count":{"T1":0,"T2":0,"D":3,"T3":0,"T4":0,"T5":0,"G":1},"guesses":1,"worstTrial":2,"expectTrial":1,"think":6,"perStep":2},"steps":[{"tier":"D","why":["路口推理：2 个位置里它照到的最多且包含其余"],"target":"E1","place":["E2"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：3 个位置里它照到的最多且包含其余"],"target":"A5","place":["A4"],"cands":null,"worstCost":0},{"tier":"G","why":["在 2 个候选中尝试"],"target":"E5","place":["C5"],"cands":2,"worstCost":2},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"target":"B1","place":["B3"],"cands":null,"worstCost":0}]},{"id":4,"theme":"T03","tier":"普通","w":5,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":["C1"],"g1":false,"rows":["#..##","..P..",".....","...#.","....."],"kStar":4,"answer":[{"cell":1,"coord":"B1","type":"A"},{"cell":13,"coord":"D3","type":"A"},{"cell":15,"coord":"A4","type":"A"},{"cell":24,"coord":"E5","type":"A"}],"metrics":{"placements":4,"easyShare":0.5,"opening":"T3","count":{"T1":0,"T2":0,"D":2,"T3":2,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":10,"perStep":2.5},"steps":[{"tier":"T3","why":["C1排除"],"target":"C1","place":["B1"],"cands":null,"worstCost":0},{"tier":"T3","why":["C1排除"],"target":"D2","place":["D3"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：3 个位置里它照到的最多且包含其余"],"target":"E2","place":["E5"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：4 个位置里它照到的最多且包含其余"],"target":"A4","place":["A4"],"cands":null,"worstCost":0}]},{"id":5,"theme":"T06","tier":"普通","w":5,"h":5,"types":[{"key":"A","kind":"E2","range":2}],"mech":["E2"],"g1":false,"rows":["....#",".....","#.#.#","...##","....."],"kStar":4,"answer":[{"cell":0,"coord":"A1","type":"A"},{"cell":8,"coord":"D2","type":"A"},{"cell":16,"coord":"B4","type":"A"},{"cell":22,"coord":"C5","type":"A"}],"metrics":{"placements":4,"easyShare":0.75,"opening":"D","count":{"T1":0,"T2":0,"D":3,"T3":0,"T4":0,"T5":1,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":11,"perStep":2.75},"steps":[{"tier":"D","why":["路口推理：3 个位置里它照到的最多且包含其余"],"target":"E5","place":["C5"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：4 个位置里它照到的最多且包含其余"],"target":"A4","place":["B4"],"cands":null,"worstCost":0},{"tier":"T5","why":["一步反证（2 个候选会顺推出矛盾）"],"target":"E2","place":["D2"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"target":"B1","place":["A1"],"cands":null,"worstCost":0}]},{"id":6,"theme":"T07","tier":"挑战","w":5,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":["C2","G1"],"g1":true,"rows":["....#","..##.","#.D#.","...#.","..#.."],"kStar":5,"answer":[{"cell":0,"coord":"A1","type":"A"},{"cell":11,"coord":"B3","type":"A"},{"cell":17,"coord":"C4","type":"A"},{"cell":20,"coord":"A5","type":"A"},{"cell":24,"coord":"E5","type":"A"}],"metrics":{"placements":5,"easyShare":0.2,"opening":"T2","count":{"T1":0,"T2":1,"D":0,"T3":1,"T4":1,"T5":1,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":16,"perStep":3.2},"steps":[{"tier":"T2","why":["C2只剩两个来源"],"target":"C3","place":["B3","C4"],"cands":null,"worstCost":0},{"tier":"T3","why":["G1排除"],"target":"A5","place":["A5"],"cands":null,"worstCost":0},{"tier":"T5","why":["一步反证（1 个候选会顺推出矛盾）"],"target":"A2","place":["A1"],"cands":null,"worstCost":0},{"tier":"T4","why":["最后一台放交点"],"target":"E2","place":["E5"],"cands":null,"worstCost":0}]},{"id":7,"theme":"T11","tier":"挑战","w":5,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":["C2","R1"],"g1":false,"rows":[".....","#/D#.","..#.#",".....","###.."],"kStar":4,"answer":[{"cell":4,"coord":"E1","type":"A"},{"cell":11,"coord":"B3","type":"A"},{"cell":16,"coord":"B4","type":"A"},{"cell":23,"coord":"D5","type":"A"}],"metrics":{"placements":4,"easyShare":0.5,"opening":"D","count":{"T1":0,"T2":0,"D":2,"T3":0,"T4":0,"T5":2,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":14,"perStep":3.5},"steps":[{"tier":"D","why":["路口推理：2 个位置里它照到的最多且包含其余"],"target":"E2","place":["E1"],"cands":null,"worstCost":0},{"tier":"T5","why":["一步反证（2 个候选会顺推出矛盾）"],"target":"D3","place":["D5"],"cands":null,"worstCost":0},{"tier":"T5","why":["一步反证（2 个候选会顺推出矛盾）"],"target":"A3","place":["B3"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"target":"A4","place":["B4"],"cands":null,"worstCost":0}]},{"id":8,"theme":"T03","tier":"挑战","w":6,"h":6,"types":[{"key":"A","kind":"E2","range":2}],"mech":["E2","C1"],"g1":false,"rows":["....#.",".#....","..P...","......",".##.#.","......"],"kStar":6,"answer":[{"cell":1,"coord":"B1","type":"A"},{"cell":10,"coord":"E2","type":"A"},{"cell":17,"coord":"F3","type":"A"},{"cell":18,"coord":"A4","type":"A"},{"cell":19,"coord":"B4","type":"A"},{"cell":33,"coord":"D6","type":"A"}],"metrics":{"placements":6,"easyShare":0.67,"opening":"T3","count":{"T1":0,"T2":0,"D":4,"T3":1,"T4":0,"T5":1,"G":0},"guesses":0,"worstTrial":0,"expectTrial":0,"think":16,"perStep":2.67},"steps":[{"tier":"T3","why":["C1排除"],"target":"B3","place":["B4"],"cands":null,"worstCost":0},{"tier":"T5","why":["一步反证（1 个候选会顺推出矛盾）"],"target":"C2","place":["E2"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：3 个位置里它照到的最多且包含其余"],"target":"F1","place":["F3"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"target":"F6","place":["D6"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"target":"A6","place":["A4"],"cands":null,"worstCost":0},{"tier":"D","why":["路口推理：3 个位置里它照到的最多且包含其余"],"target":"A1","place":["B1"],"cands":null,"worstCost":0}]},{"id":9,"theme":"T14","tier":"难题","w":5,"h":6,"types":[{"key":"A","kind":"E0"}],"mech":["R1","C1","G1"],"g1":true,"rows":[".#...","..#.#",".../#",".#...","..P..","...#."],"kStar":5,"answer":[{"cell":3,"coord":"D1","type":"A"},{"cell":5,"coord":"A2","type":"A"},{"cell":18,"coord":"D4","type":"A"},{"cell":26,"coord":"B6","type":"A"},{"cell":29,"coord":"E6","type":"A"}],"metrics":{"placements":5,"easyShare":0,"opening":"T3","count":{"T1":0,"T2":0,"D":0,"T3":3,"T4":1,"T5":0,"G":1},"guesses":1,"worstTrial":4,"expectTrial":2,"think":12,"perStep":3},"steps":[{"tier":"T3","why":["C1排除"],"target":"B5","place":["B6"],"cands":null,"worstCost":0},{"tier":"T3","why":["C1排除"],"target":"D5","place":["D4"],"cands":null,"worstCost":0},{"tier":"T3","why":["C1排除","G1排除"],"target":"E5","place":["E6"],"cands":null,"worstCost":0},{"tier":"G","why":["在 3 个候选中尝试"],"target":"C1","place":["D1"],"cands":3,"worstCost":4},{"tier":"T4","why":["最后一台放交点"],"target":"A1","place":["A2"],"cands":null,"worstCost":0}]},{"id":10,"theme":"T10","tier":"难题","w":5,"h":6,"types":[{"key":"A","kind":"E0"}],"mech":["R1","C2"],"g1":false,"rows":["..#..",".....","...#.","./D#.","..#..","##..#"],"kStar":5,"answer":[{"cell":4,"coord":"E1","type":"A"},{"cell":7,"coord":"C2","type":"A"},{"cell":15,"coord":"A4","type":"A"},{"cell":21,"coord":"B5","type":"A"},{"cell":28,"coord":"D6","type":"A"}],"metrics":{"placements":5,"easyShare":0.4,"opening":"D","count":{"T1":0,"T2":0,"D":2,"T3":0,"T4":0,"T5":1,"G":2},"guesses":2,"worstTrial":4,"expectTrial":2,"think":9,"perStep":3},"steps":[{"tier":"D","why":["路口推理：2 个位置里它照到的最多且包含其余"],"target":"C6","place":["D6"],"cands":null,"worstCost":0},{"tier":"G","why":["在 2 个候选中尝试"],"target":"B5","place":["B5"],"cands":2,"worstCost":2},{"tier":"T5","why":["一步反证（2 个候选会顺推出矛盾）"],"target":"D1","place":["E1"],"cands":null,"worstCost":0},{"tier":"G","why":["在 2 个候选中尝试"],"target":"C4","place":["C2"],"cands":2,"worstCost":2},{"tier":"D","why":["路口推理：8 个位置里它照到的最多且包含其余"],"target":"A4","place":["A4"],"cands":null,"worstCost":0}]}],"themes":{"T11":{"key":"stage","name":"舞台布光","device":"灯箱","unit":"台","beam":"光线","target":"舞台","verb":"照亮","block":"布景墙","C1":"暗场换景区（必须保持黑暗）","C2":"双灯表演位（要两台不同灯照到）","R1":"固定反光板","finish":"舞台全亮，演出开始"},"T02":{"key":"ice","name":"南极冰封","device":"喷冷桩","unit":"座","beam":"冷束","target":"海面","verb":"冻结","block":"冰山岩体","C1":"海豹呼吸孔（必须保持不结冰）","C3":"薄冰水面（承重不足，不能架桩，但要冻结）","finish":"海面冻结，企鹅上岸"},"T03":{"key":"garden","name":"花园洒水","device":"洒水器","unit":"个","beam":"水束","target":"土地","verb":"浇到","block":"石墙","C1":"仙人掌禁水区","C3":"苗圃（不能装洒水器，但要浇到）","R1":"转角导水板（水束碰到会固定转 90°）","finish":"花园盛开"},"T06":{"key":"fire","name":"消防灭火","device":"消防炮","unit":"台","beam":"水柱","target":"起火地面","verb":"扑灭","block":"防火墙","C1":"配电柜（绝对不能沾水）","C2":"危化品仓（要两台不同消防炮同时压制）","C3":"疏散通道（不能摆设备，但火要扑灭）","R1":"转角导流板（水柱碰到会固定转 90°）","finish":"火势全灭，烟雾散去"},"T07":{"key":"museum","name":"博物馆监控","device":"监控柱","unit":"台","beam":"视线","target":"展厅地面","verb":"监控到","block":"展墙","C2":"重点展品（要两台不同监控柱复核）","C3":"玻璃展柜（不能安装，但视线可穿过、展柜要被看到）","R1":"凸面安全镜（视线经镜面转 90°，看到转角后面）","finish":"全馆安保就位，展品安全"},"T14":{"key":"warehouse","name":"仓库盘点","device":"读标站","unit":"台","beam":"扫描线","target":"货位","verb":"扫描到","block":"货架隔板","C1":"易碎品区（不能被扫描光照到）","C2":"双站复核货位（要两台不同设备扫描）","C3":"叉车通道（不能放设备，但要扫描）","R1":"扫码反射镜（扫描线碰到会转 90°）","finish":"全部货位盘点完成"},"T10":{"key":"space","name":"太空站照明","device":"应急灯柱","unit":"台","beam":"灯光","target":"舱室地板","verb":"照亮","block":"舱壁","C1":"观测窗（必须避光）","C2":"双灯保障区（要两台不同灯照到）","C3":"疏散通道（不能放灯，但要照亮）","R1":"光学镜","finish":"空间站恢复照明"}},"skins":{"stage":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"60\" rx=\"22\" ry=\"5\" fill=\"#b8a5ce\" opacity=\".22\"/\u003e\u003cpath d=\"M20 60h24l-3 4H23Z\" fill=\"#d8c8a2\" stroke=\"#b69b5e\"/\u003e\n \u003cg stroke=\"#ad9255\" stroke-width=\"1.4\" stroke-linejoin=\"round\"\u003e\u003cpath d=\"M22 22 19 8h26l-3 14Z\" fill=\"#eee0b8\"/\u003e\u003cpath d=\"m22 48-3 13h26l-3-13Z\" fill=\"#e0cc97\"/\u003e\u003cpath d=\"m19 25-13-3v26l13-3Z\" fill=\"#e9d8ad\"/\u003e\u003cpath d=\"m45 25 13-3v26l-13-3Z\" fill=\"#f4e9c9\"/\u003e\n \u003crect x=\"19\" y=\"22\" width=\"26\" height=\"26\" rx=\"5\" fill=\"#fffaf0\"/\u003e\u003crect x=\"23\" y=\"26\" width=\"18\" height=\"18\" rx=\"3\" fill=\"#fff1b7\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"35\" r=\"6\" fill=\"#fffef4\" stroke=\"#d2b462\"/\u003e\u003cpath d=\"M26 16h12M26 54h12M11 29v12M53 29v12\" fill=\"none\" stroke=\"#fff9e9\" stroke-width=\"1.5\"/\u003e\n \u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"27\" ry=\"4\" fill=\"#cfc4de\"/\u003e\u003cpath d=\"M8 14h45l4 6v39l-6 4H8Z\" fill=\"#ddd4ec\" stroke=\"#b3a5c8\" stroke-width=\"1.4\"/\u003e\u003cpath d=\"M8 14h45l4 6H12Z\" fill=\"#f5f1fc\"/\u003e\u003cpath d=\"M51 21h6v38l-6 4Z\" fill=\"#c7badb\"/\u003e\n \u003cpath d=\"M12 23h34v31H12Z\" fill=\"#ede7f7\" stroke=\"#c3b4d6\"/\u003e\u003cpath d=\"M18 23v31m8-31v31m9-31v31m8-31v31\" stroke=\"#d7c9e6\" stroke-width=\"2\"/\u003e\u003cpath d=\"M12 56h35\" stroke=\"#d3b775\" stroke-width=\"2\"/\u003e\n \u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\n \u003cg class=\"dry-detail\" fill=\"none\" stroke=\"#c9bcdd\" stroke-width=\"1.2\"\u003e\u003cpath d=\"M7 15h50M7 49h50M15 7v50m34-50v50\" opacity=\".65\"/\u003e\u003cpath d=\"m32 23 9 9-9 9-9-9Z\"/\u003e\u003ccircle cx=\"32\" cy=\"32\" r=\"2\" fill=\"#d4c8e3\"/\u003e\u003c/g\u003e\n \u003cg class=\"wet-detail\" fill=\"none\" stroke=\"#d9bc6f\" stroke-width=\"1.2\"\u003e\u003cpath d=\"M8 50h48M15 54h34M32 15v22M21 26h22m-18-7 14 14m-14 0 14-14\"/\u003e\u003ccircle cx=\"32\" cy=\"26\" r=\"10\" fill=\"#fff4cf\" stroke=\"#e8d5a0\"/\u003e\u003cpath d=\"m32 18 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z\" fill=\"#fffdf1\"/\u003e\u003cpath d=\"M10 12v8m-4-4h8m36 19v8m-4-4h8\" stroke=\"#d6c4e7\"/\u003e\u003c/g\u003e\n \u003c/svg\u003e"},"ice":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"59\" rx=\"23\" ry=\"7\" fill=\"#659fc2\" opacity=\".22\"/\u003e\u003cpath d=\"m12 52 20-8 20 8-6 10H18Z\" fill=\"#84bfdc\" stroke=\"#4b87ac\"/\u003e\n \u003cpath d=\"M24 27h16v26l-8 5-8-5Z\" fill=\"#ddf6ff\" stroke=\"#659cbd\" stroke-width=\"1.4\"/\u003e\u003cpath d=\"M32 29v26l8-3V27Z\" fill=\"#a5daef\"/\u003e\n \u003cpath d=\"m32 8 12 17-12 14-12-14Z\" fill=\"#edfcff\" stroke=\"#589bbd\" stroke-width=\"1.4\"/\u003e\u003cpath d=\"m32 8 1 17 11 0-12 14-3-14-9 0Z\" fill=\"#b1e6f8\"/\u003e\n \u003cpath d=\"M7 29h12m-5-4-5 4 5 4m31-4h12m-7-4 5 4-5 4M32 2v5m0 35v6\" fill=\"none\" stroke=\"#318ab4\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/\u003e\n \u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"28\" ry=\"5\" fill=\"#91b5cb\"/\u003e\u003cpath d=\"m5 55 12-28 10 7L38 7l12 23 10 25-24 9Z\" fill=\"#e5f6ff\" stroke=\"#6f9dbb\" stroke-width=\"1.4\"/\u003e\n \u003cpath d=\"M38 7 35 40 27 34l9 30 24-9-10-25Z\" fill=\"#a1c7de\"/\u003e\u003cpath d=\"m17 27-1 16 11-9m11-27 8 23-11 10\" fill=\"#f7fdff\"/\u003e\u003cpath d=\"m7 55 15-3 14 12m-1-24 15 11 10 4\" fill=\"none\" stroke=\"#7ca8c4\" stroke-width=\"1.2\"/\u003e\n \u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\n \u003cg class=\"dry-detail\" fill=\"none\" stroke=\"#6fabc9\" stroke-width=\"1.5\" opacity=\".85\"\u003e\u003cpath d=\"M7 17q6-5 12 0t12 0t12 0t12 0M7 36q6-5 12 0t12 0t12 0t12 0M12 52q6-4 12 0t12 0t12 0\"/\u003e\u003cpath d=\"M12 24h10m17 20h12\" stroke=\"#e2f3fa\"/\u003e\u003c/g\u003e\n \u003cg class=\"wet-detail\" fill=\"none\" stroke=\"#9dd1e6\" stroke-width=\"1.2\"\u003e\u003cpath d=\"m4 18 16 10 10-10 14 12 16-7M20 28l-6 17 13 15m3-42 3-14m11 26-8 12 14 11M14 45l22-3\"/\u003e\u003cpath d=\"M45 6v12m-5-9 10 6m-10 0 10-6M8 7l5 2m38 34 6-3\" stroke=\"#d4edf7\" stroke-width=\"2\"/\u003e\u003c/g\u003e\n \u003c/svg\u003e"},"garden":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"58\" rx=\"22\" ry=\"7\" fill=\"#47754b\" opacity=\".2\"/\u003e\u003cpath d=\"M17 54h30l-4 8H21Z\" fill=\"#71906a\" stroke=\"#416a48\"/\u003e\n \u003crect x=\"27\" y=\"28\" width=\"10\" height=\"27\" rx=\"3\" fill=\"#c5d4b4\" stroke=\"#537654\" stroke-width=\"1.5\"/\u003e\u003cpath d=\"M33 31v21\" stroke=\"#779d78\" stroke-width=\"3\"/\u003e\n \u003cpath d=\"M15 24h34v9H15Z\" fill=\"#88b2b7\" stroke=\"#477b86\" stroke-width=\"1.5\"/\u003e\u003cpath d=\"M27 14h10v28H27Z\" fill=\"#95c4c7\" stroke=\"#477b86\" stroke-width=\"1.4\"/\u003e\n \u003ccircle cx=\"32\" cy=\"28\" r=\"7\" fill=\"#effafa\" stroke=\"#497d8c\" stroke-width=\"1.5\"/\u003e\u003ccircle cx=\"32\" cy=\"28\" r=\"2\" fill=\"#568b98\"/\u003e\n \u003cpath d=\"m6 27 6 1-6 2m46-3 6 1-6 2M30 7l2 5 2-5m-4 42 2-5 2 5\" fill=\"none\" stroke=\"#55a8cc\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/\u003e\n \u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"28\" ry=\"5\" fill=\"#9a987c\" opacity=\".35\"/\u003e\u003cpath d=\"m5 20 9-7 45 2v43l-9 6L5 60Z\" fill=\"#a2a38a\" stroke=\"#7e806b\" stroke-width=\"1.4\"/\u003e\n \u003cpath d=\"m5 20 45 2 9-7-45-2Z\" fill=\"#e1dfc7\"/\u003e\u003cpath d=\"M50 22v42l9-6V15Z\" fill=\"#8a8e77\"/\u003e\u003cpath d=\"M5 20h45v42L5 60Z\" fill=\"#c8c8b0\"/\u003e\n \u003cpath d=\"m6 34 43 1M6 48l43 1M20 21v13m15 1v14M21 48v13\" stroke=\"#f0edda\" stroke-width=\"2\"/\u003e\u003cpath d=\"m7 26 9-3m23 30 7 2\" stroke=\"#a8ac8e\" stroke-width=\"3\" stroke-linecap=\"round\"/\u003e\n \u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\n \u003cg class=\"dry-detail\" fill=\"none\" stroke=\"#bb9e6d\" stroke-width=\"1.2\"\u003e\u003cpath d=\"m6 19 12 4 8-8m-8 8-4 12m28-26-3 12 12 7m-12-7-10 6M9 49l17-4 8 12m-8-12 8-8m10 9 12 4\"/\u003e\u003ccircle cx=\"10\" cy=\"9\" r=\"1\"/\u003e\u003ccircle cx=\"51\" cy=\"36\" r=\"1\"/\u003e\u003c/g\u003e\n \u003cg class=\"wet-detail\"\u003e\u003cpath d=\"M9 53q1-12-4-17m4 17q5-12 11-13M26 51V25m0 16q-9-10-13-4m13 0q9-10 14-3M48 54V36m0 13q-8-9-12-3m12-2q8-9 12-5\" fill=\"none\" stroke=\"#4b8756\" stroke-width=\"2\" stroke-linecap=\"round\"/\u003e\n \u003cg fill=\"#fff4db\" stroke=\"#d7ab56\" stroke-width=\".6\"\u003e\u003ccircle cx=\"26\" cy=\"20\" r=\"4\"/\u003e\u003ccircle cx=\"21\" cy=\"24\" r=\"4\"/\u003e\u003ccircle cx=\"24\" cy=\"29\" r=\"4\"/\u003e\u003ccircle cx=\"30\" cy=\"28\" r=\"4\"/\u003e\u003ccircle cx=\"31\" cy=\"22\" r=\"4\"/\u003e\u003c/g\u003e\u003ccircle cx=\"26\" cy=\"24\" r=\"3\" fill=\"#dfb75d\"/\u003e\n \u003cg fill=\"#f4d5c7\"\u003e\u003ccircle cx=\"48\" cy=\"32\" r=\"4\"/\u003e\u003ccircle cx=\"43\" cy=\"36\" r=\"4\"/\u003e\u003ccircle cx=\"47\" cy=\"40\" r=\"4\"/\u003e\u003ccircle cx=\"52\" cy=\"37\" r=\"4\"/\u003e\u003ccircle cx=\"53\" cy=\"32\" r=\"4\"/\u003e\u003c/g\u003e\u003ccircle cx=\"48\" cy=\"36\" r=\"2.5\" fill=\"#d6a84d\"/\u003e\u003cpath d=\"M4 58h56\" stroke=\"#80ae70\" stroke-width=\"2\"/\u003e\n \u003c/g\u003e\u003c/svg\u003e"},"fire":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"21\" ry=\"5\" fill=\"#c9b6ac\" opacity=\".45\"/\u003e\n \u003crect x=\"20\" y=\"50\" width=\"24\" height=\"9\" rx=\"3\" fill=\"#b4472c\" stroke=\"#7d2f1c\" stroke-width=\"1.5\"/\u003e\n \u003ccircle cx=\"24\" cy=\"58\" r=\"3.4\" fill=\"#4e5458\" stroke=\"#33383b\"/\u003e\u003ccircle cx=\"40\" cy=\"58\" r=\"3.4\" fill=\"#4e5458\" stroke=\"#33383b\"/\u003e\n \u003crect x=\"27\" y=\"27\" width=\"10\" height=\"25\" rx=\"3\" fill=\"#d85e34\" stroke=\"#8c351b\" stroke-width=\"1.5\"/\u003e\n \u003cpath d=\"M22 27h20l-4-8H26Z\" fill=\"#e9784a\" stroke=\"#8c351b\" stroke-width=\"1.5\"/\u003e\n \u003ccircle cx=\"32\" cy=\"23\" r=\"8\" fill=\"#f5a56f\" stroke=\"#8c351b\" stroke-width=\"1.8\"/\u003e\n \u003cpath d=\"M32 15v16M24 23h16\" stroke=\"#ffe3cd\" stroke-width=\"2\" stroke-linecap=\"round\"/\u003e\n \u003cg fill=\"#7fc4e0\" opacity=\".9\"\u003e\u003ccircle cx=\"12\" cy=\"20\" r=\"2.4\"/\u003e\u003ccircle cx=\"52\" cy=\"20\" r=\"2.4\"/\u003e\u003ccircle cx=\"16\" cy=\"9\" r=\"1.6\"/\u003e\u003ccircle cx=\"48\" cy=\"9\" r=\"1.6\"/\u003e\u003c/g\u003e\n \u003cpath d=\"M20 17q-4 3 0 6M44 17q4 3 0 6\" fill=\"none\" stroke=\"#7fc4e0\" stroke-width=\"1.6\" stroke-linecap=\"round\"/\u003e\n\u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#b9ada6\" opacity=\".5\"/\u003e\n \u003crect x=\"7\" y=\"11\" width=\"50\" height=\"49\" rx=\"3\" fill=\"#f2ece6\" stroke=\"#a99a8d\" stroke-width=\"1.6\"/\u003e\n \u003cpath d=\"M7 24h50M7 39h50M7 53h50\" stroke=\"#c2b5a8\" stroke-width=\"1.4\"/\u003e\n \u003cpath d=\"M22 11v13M42 24v15M27 39v14M47 53v7\" stroke=\"#c2b5a8\" stroke-width=\"1.4\"/\u003e\n \u003crect x=\"9\" y=\"13\" width=\"46\" height=\"8\" fill=\"#d05a3c\" opacity=\".85\"/\u003e\n \u003cpath d=\"M9 21l8-8m6 8 8-8m6 8 8-8m6 8 8-8\" stroke=\"#fff3e9\" stroke-width=\"2.5\" opacity=\".9\"/\u003e\n \u003ccircle cx=\"15\" cy=\"31\" r=\"1.5\" fill=\"#b7a99b\"/\u003e\u003ccircle cx=\"49\" cy=\"46\" r=\"1.5\" fill=\"#b7a99b\"/\u003e\n\u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\u003cg class=\"dry-detail\"\u003e\u003cg fill=\"none\" stroke=\"#d8a06c\" stroke-width=\"1.4\" opacity=\".8\"\u003e\u003cpath d=\"M14 46q3-7 6-3t3-7 4 6M42 18q3-6 5-2t3-6 3 5\"/\u003e\u003cpath d=\"M10 55h44\" stroke=\"#c9b49c\" stroke-dasharray=\"4 3\"/\u003e\u003c/g\u003e\u003cg fill=\"#e29a5c\" opacity=\".55\"\u003e\u003ccircle cx=\"18\" cy=\"20\" r=\"1.8\"/\u003e\u003ccircle cx=\"47\" cy=\"48\" r=\"1.6\"/\u003e\u003ccircle cx=\"31\" cy=\"34\" r=\"1.2\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003cg class=\"wet-detail\"\u003e\u003cg fill=\"none\" stroke=\"#5ba7cd\" stroke-width=\"1.8\" stroke-linecap=\"round\"\u003e\u003cpath d=\"M5 18q11-5 22 0t22 0M5 34q11-5 22 0t22 0M5 50q11-5 22 0t22 0\"/\u003e\u003c/g\u003e\u003cg fill=\"#a7dcee\"\u003e\u003ccircle cx=\"14\" cy=\"10\" r=\"2.2\"/\u003e\u003ccircle cx=\"48\" cy=\"27\" r=\"2\"/\u003e\u003ccircle cx=\"27\" cy=\"57\" r=\"1.8\"/\u003e\u003c/g\u003e\u003cpath d=\"M32 24q-6 7 0 12t0 0q6-5 0-12Z\" fill=\"#cdeaf5\" stroke=\"#6bb2d0\" stroke-width=\"1.4\"/\u003e\u003c/g\u003e\u003c/svg\u003e"},"museum":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"62\" rx=\"20\" ry=\"5\" fill=\"#2b8aa3\" opacity=\".18\"/\u003e\u003cpath d=\"M22 58h20l-2 5H24Z\" fill=\"#9aa9b0\" stroke=\"#5f7680\"/\u003e\n \u003crect x=\"28\" y=\"34\" width=\"8\" height=\"25\" rx=\"2\" fill=\"#dfe6e9\" stroke=\"#6c838d\" stroke-width=\"1.3\"/\u003e\u003cpath d=\"M33 36v21\" stroke=\"#b9c6cc\" stroke-width=\"2\"/\u003e\n \u003crect x=\"18\" y=\"14\" width=\"28\" height=\"20\" rx=\"5\" fill=\"#f6fafb\" stroke=\"#4f6f7b\" stroke-width=\"1.5\"/\u003e\n \u003cg fill=\"#5d7884\" stroke=\"#3f5a66\" stroke-width=\".8\"\u003e\u003crect x=\"27\" y=\"6\" width=\"10\" height=\"9\" rx=\"2\"/\u003e\u003crect x=\"9\" y=\"19\" width=\"10\" height=\"10\" rx=\"2\"/\u003e\u003crect x=\"45\" y=\"19\" width=\"10\" height=\"10\" rx=\"2\"/\u003e\u003crect x=\"27\" y=\"33\" width=\"10\" height=\"8\" rx=\"2\"/\u003e\u003c/g\u003e\n \u003cg fill=\"#8ee6f3\" stroke=\"#e9fcff\" stroke-width=\".8\"\u003e\u003ccircle cx=\"32\" cy=\"10\" r=\"2.6\"/\u003e\u003ccircle cx=\"13\" cy=\"24\" r=\"2.6\"/\u003e\u003ccircle cx=\"51\" cy=\"24\" r=\"2.6\"/\u003e\u003ccircle cx=\"32\" cy=\"37\" r=\"2.4\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"24\" r=\"4.6\" fill=\"#e3f6f8\" stroke=\"#2b8aa3\" stroke-width=\"1.4\"/\u003e\u003ccircle cx=\"32\" cy=\"24\" r=\"1.7\" fill=\"#d64545\"/\u003e\n \u003cpath d=\"M32 1v3M2 24h5M57 24h5\" stroke=\"#2fb3cf\" stroke-width=\"1.6\" stroke-linecap=\"round\"/\u003e\n \u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#b9c1c5\" opacity=\".6\"/\u003e\u003cpath d=\"M8 14 14 8h44l-6 6Z\" fill=\"#ffffff\" stroke=\"#a7b0b5\" stroke-width=\"1.1\"/\u003e\u003cpath d=\"M52 14l6-6v46l-6 7Z\" fill=\"#d3d9dc\" stroke=\"#a7b0b5\" stroke-width=\"1.1\"/\u003e\n \u003crect x=\"8\" y=\"14\" width=\"44\" height=\"47\" fill=\"#eceeef\" stroke=\"#9ea8ad\" stroke-width=\"1.3\"/\u003e\u003crect x=\"16\" y=\"21\" width=\"28\" height=\"21\" rx=\"1\" fill=\"#fbfaf6\" stroke=\"#b9a983\" stroke-width=\"1.6\"/\u003e\n \u003cpath d=\"m19 39 7-8 5 5 4-4 6 7Z\" fill=\"#c9d6cf\"/\u003e\u003ccircle cx=\"37\" cy=\"27\" r=\"2.5\" fill=\"#e6cf95\"/\u003e\u003cpath d=\"M8 54h44\" stroke=\"#c9cfd2\" stroke-width=\"2\"/\u003e\u003cpath d=\"M24 48h12\" stroke=\"#b7bfc3\" stroke-width=\"2\" stroke-linecap=\"round\"/\u003e\n \u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\n \u003cg class=\"dry-detail\" fill=\"none\" stroke=\"#d2c9bc\" stroke-width=\"1.2\"\u003e\u003cpath d=\"M4 22h56M4 42h56M22 4v18m20-18v18M12 22v20m20-20v20m20-20v20M22 42v18m20-18v18\"/\u003e\u003c/g\u003e\n \u003cg class=\"wet-detail\" fill=\"none\"\u003e\u003cpath d=\"M4 12h56M4 22h56M4 32h56M4 42h56M4 52h56M12 4v56M22 4v56M32 4v56M42 4v56M52 4v56\" stroke=\"#86cfdc\" stroke-width=\".8\" opacity=\".6\"/\u003e\u003cpath d=\"M4 36h56\" stroke=\"#c4f0f6\" stroke-width=\"4\" opacity=\".7\"/\u003e\u003cpath d=\"M4 33h56\" stroke=\"#2fb3cf\" stroke-width=\"1.4\" opacity=\".75\"/\u003e\u003ccircle cx=\"53\" cy=\"11\" r=\"2.4\" fill=\"#2fb3cf\"/\u003e\u003c/g\u003e\n \u003c/svg\u003e"},"warehouse":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"21\" ry=\"5\" fill=\"#c1b7a3\" opacity=\".45\"/\u003e\n \u003crect x=\"21\" y=\"51\" width=\"22\" height=\"9\" rx=\"2\" fill=\"#7d8f56\" stroke=\"#546536\" stroke-width=\"1.5\"/\u003e\n \u003crect x=\"26\" y=\"20\" width=\"12\" height=\"31\" rx=\"2\" fill=\"#e7ddc5\" stroke=\"#a9956f\" stroke-width=\"1.5\"/\u003e\n \u003crect x=\"20\" y=\"10\" width=\"24\" height=\"13\" rx=\"3\" fill=\"#9bb06a\" stroke=\"#5f7840\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"24\" y=\"13\" width=\"16\" height=\"6\" rx=\"1.5\" fill=\"#1f3327\"/\u003e\n \u003cpath d=\"M26 16h12\" stroke=\"#8ee08a\" stroke-width=\"2\" stroke-linecap=\"round\"/\u003e\n \u003cg stroke=\"#6f9450\" stroke-width=\"1.8\" stroke-linecap=\"round\"\u003e\u003cpath d=\"M14 27v6M50 27v6M32 41h0\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"46\" r=\"2.6\" fill=\"#5f8c43\"/\u003e\n\u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#bcae95\" opacity=\".45\"/\u003e\n \u003crect x=\"7\" y=\"8\" width=\"50\" height=\"52\" rx=\"2\" fill=\"#d8c5a3\" stroke=\"#a58f6c\" stroke-width=\"1.6\"/\u003e\n \u003cpath d=\"M7 24h50M7 41h50\" stroke=\"#9a815d\" stroke-width=\"3\"/\u003e\n \u003crect x=\"11\" y=\"11\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"11\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003crect x=\"11\" y=\"27\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"27\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003crect x=\"11\" y=\"44\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"44\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003cpath d=\"M20 11v11M44 11v11M20 27v11M44 27v11M20 44v11M44 44v11\" stroke=\"#c3ab84\" stroke-width=\"1.2\"/\u003e\n\u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\u003cg class=\"dry-detail\"\u003e\u003cg fill=\"none\" stroke=\"#c3b393\" stroke-width=\"1.3\" opacity=\".85\"\u003e\u003crect x=\"10\" y=\"10\" width=\"44\" height=\"44\" rx=\"2\"/\u003e\u003cpath d=\"M32 10v44M10 32h44\"/\u003e\u003cpath d=\"M10 21h44M10 43h44\" stroke-dasharray=\"3 3\"/\u003e\u003c/g\u003e\u003cg fill=\"#bda882\" opacity=\".6\"\u003e\u003ccircle cx=\"20\" cy=\"20\" r=\"1.5\"/\u003e\u003ccircle cx=\"44\" cy=\"44\" r=\"1.5\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003cg class=\"wet-detail\"\u003e\u003cg fill=\"none\" stroke=\"#5f9448\" stroke-width=\"1.8\" stroke-linecap=\"round\"\u003e\u003cpath d=\"M8 18h48M8 32h48M8 46h48\"/\u003e\u003cpath d=\"m18 52 5 5 10-11\" stroke=\"#3f7a35\" stroke-width=\"2.6\"/\u003e\u003c/g\u003e\u003crect x=\"9\" y=\"9\" width=\"46\" height=\"46\" rx=\"3\" fill=\"none\" stroke=\"#8cc274\" stroke-width=\"1.4\"/\u003e\u003c/g\u003e\u003c/svg\u003e"},"space":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"20\" ry=\"5\" fill=\"#aebac0\" opacity=\".45\"/\u003e\n \u003crect x=\"22\" y=\"53\" width=\"20\" height=\"7\" rx=\"2\" fill=\"#8fa3ad\" stroke=\"#5d747e\" stroke-width=\"1.4\"/\u003e\n \u003crect x=\"28\" y=\"27\" width=\"8\" height=\"27\" rx=\"2\" fill=\"#c7d8de\" stroke=\"#7794a0\" stroke-width=\"1.4\"/\u003e\n \u003cpath d=\"M20 12h24l-4 15H24Z\" fill=\"#e8f6f7\" stroke=\"#7fa9b5\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"23\" y=\"20\" width=\"18\" height=\"6\" rx=\"2\" fill=\"#bdeaf0\"/\u003e\n \u003cg stroke=\"#8fd4e2\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".9\"\u003e\u003cpath d=\"M32 4v5M14 18h6M44 18h6M18 8l4 4M46 8l-4 4\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"52\" r=\"2.4\" fill=\"#4fb4c4\"/\u003e\n\u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#aeb9be\" opacity=\".45\"/\u003e\n \u003crect x=\"6\" y=\"9\" width=\"52\" height=\"51\" rx=\"4\" fill=\"#d6dfe3\" stroke=\"#9baeb6\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"10\" y=\"13\" width=\"44\" height=\"43\" rx=\"2\" fill=\"#c2ced4\"/\u003e\n \u003cpath d=\"M10 27h44M10 42h44M32 13v43\" stroke=\"#a5b6bd\" stroke-width=\"1.5\"/\u003e\n \u003cg fill=\"#8fa3ab\"\u003e\u003ccircle cx=\"13\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"51\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"13\" cy=\"53\" r=\"1.6\"/\u003e\u003ccircle cx=\"51\" cy=\"53\" r=\"1.6\"/\u003e\u003ccircle cx=\"29\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"35\" cy=\"53\" r=\"1.6\"/\u003e\u003c/g\u003e\n \u003crect x=\"15\" y=\"31\" width=\"12\" height=\"7\" rx=\"1.5\" fill=\"#e7f1f3\" stroke=\"#9fb4bc\"/\u003e\n\u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\u003cg class=\"dry-detail\"\u003e\u003cg fill=\"none\" stroke=\"#aebfc6\" stroke-width=\"1.2\" opacity=\".8\"\u003e\u003cpath d=\"M8 8h48v48H8ZM8 24h48M8 40h48M24 8v48M40 8v48\"/\u003e\u003cpath d=\"M8 8 56 56M56 8 8 56\" opacity=\".35\"/\u003e\u003c/g\u003e\u003cg fill=\"#9fb2ba\" opacity=\".6\"\u003e\u003ccircle cx=\"16\" cy=\"16\" r=\"1.4\"/\u003e\u003ccircle cx=\"48\" cy=\"48\" r=\"1.4\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003cg class=\"wet-detail\"\u003e\u003cg fill=\"none\" stroke=\"#7ec9d6\" stroke-width=\"1.7\"\u003e\u003crect x=\"9\" y=\"9\" width=\"46\" height=\"46\" rx=\"3\"/\u003e\u003cpath d=\"M20 32h24M32 20v24\"/\u003e\u003c/g\u003e\u003ccircle cx=\"32\" cy=\"32\" r=\"10\" fill=\"#dff5f7\" stroke=\"#79bfcd\" stroke-width=\"1.6\"/\u003e\u003cg fill=\"#a6e2ea\"\u003e\u003ccircle cx=\"14\" cy=\"14\" r=\"2\"/\u003e\u003ccircle cx=\"50\" cy=\"50\" r=\"2\"/\u003e\u003ccircle cx=\"50\" cy=\"14\" r=\"1.6\"/\u003e\u003ccircle cx=\"14\" cy=\"50\" r=\"1.6\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003c/svg\u003e"}}}</script>
+<script>
+'use strict';
+const DATA=JSON.parse(document.getElementById('data').textContent);
+const LV=DATA.levels,TH=DATA.themes,SK=DATA.skins;
+const $=id=>document.getElementById(id);
+const COL=['#2b7fa8','#c0602e','#6a4fa3','#2e8a5f','#b8396b','#7a6a1f'];
+const TIERCLS={入门:'t0',普通:'t1',挑战:'t2',难题:'t3'};
+const STEPNAME={T1:['明显死角','easy'],T2:['隐蔽死角','easy'],D:['路口推理','mid'],T3:['机制排除','deep'],T4:['最后一台','mid'],T5:['一步反证','deep'],G:['尝试','guess']};
+const LC=s=>String(s).replace(/([A-F])(\d)/g,'$1列$2行');
+const coordOf=(i,W)=>String.fromCharCode(65+i%W)+'列'+(Math.floor(i/W)+1)+'行';
+const short=s=>(s||'').split('（')[0];
+
+/* ───────── 配置（后台可调） ───────── */
+const CFG={undo:5,max:50,cost:10,regenSec:180,refund:10,freeLevels:1,showTier:true};
+let stamina=CFG.max,regenAt=null;
+
+/* ───────── 规则引擎 ───────── */
+function prep(raw){
+  const W=raw.w,H=raw.h,cells=raw.rows.join('').split('');
+  const range=raw.types[0].kind==='E2'?raw.types[0].range:null;
+  const targets=[],need={};
+  cells.forEach((x,i)=>{if(x==='.'||x==='N'||x==='D'){targets.push(i);need[i]=x==='D'?2:1;}});
+  const L={raw,W,H,cells,range,targets,need,g1:!!raw.g1,cache:{}};
+  return L;
+}
+function trace(L,s){
+  if(L.cache[s])return L.cache[s];
+  const {W,H,cells}=L,hits=new Set([s]),rays=[];
+  for(const [dr0,dc0] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    let r=Math.floor(s/W),c=s%W,dr=dr0,dc=dc0,k=0,end='boundary';const seen=new Set(),path=[];
+    while(true){
+      const a=r+dr,b=c+dc;
+      if(a<0||a>=H||b<0||b>=W){end='boundary';break;}
+      const j=a*W+b,x=cells[j];
+      if(x==='#'){end='wall';break;}
+      if(L.range!==null&&k>=L.range){end='range';break;}
+      const st=j*16+(dr+1)*4+(dc+1);if(seen.has(st)){end='loop';break;}
+      seen.add(st);path.push(j);hits.add(j);k++;
+      if(x==='/')[dr,dc]=[-dc,-dr];else if(x==='\\')[dr,dc]=[dc,dr];
+      r=a;c=b;
+    }
+    rays.push({path,end,dir:[dr,dc]});
+  }
+  return L.cache[s]={hits,rays};
+}
+function evalBoard(L,placed){
+  const src={};L.targets.forEach(t=>src[t]=new Set());
+  const viol=new Set(),wet=new Set();
+  placed.forEach(p=>{const tr=trace(L,p);tr.hits.forEach(h=>{wet.add(h);if(src[h])src[h].add(p);if(L.cells[h]==='P')viol.add(h);});});
+  const pairs=[];
+  if(L.g1)for(const a of placed)for(const b of placed)if(a!==b&&trace(L,a).hits.has(b))pairs.push([a,b]);
+  let covered=0;L.targets.forEach(t=>{if(src[t].size>=L.need[t])covered++;});
+  const doubles=L.targets.filter(t=>L.need[t]===2).map(t=>({t,n:src[t].size}));
+  const won=covered===L.targets.length&&!viol.size&&!pairs.length;
+  return {src,viol,pairs,covered,total:L.targets.length,doubles,won,wet};
+}
+
+/* ───────── 体力 ───────── */
+function tickStamina(){
+  const now=Date.now();
+  if(stamina>=CFG.max){stamina=Math.min(stamina,CFG.max);regenAt=null;}
+  else{if(!regenAt)regenAt=now+CFG.regenSec*1000;while(regenAt&&now>=regenAt&&stamina<CFG.max){stamina++;regenAt=stamina<CFG.max?regenAt+CFG.regenSec*1000:null;}}
+  $('st').textContent=stamina;$('stmax').textContent='/'+CFG.max;
+  if(regenAt){const s=Math.max(0,Math.ceil((regenAt-now)/1000));$('regen').textContent='+1 '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}else $('regen').textContent='满';
+}
+setInterval(tickStamina,1000);
+const isFree=i=>i<CFG.freeLevels;
+
+/* ───────── 状态 ───────── */
+let cur=null;            // 当前局
+const cleared={},records=[];
+function newAttempt(i){
+  const raw=LV[i],L=prep(raw);
+  return {i,L,placed:[],hist:[],undoLeft:CFG.undo,undoUsed:0,places:0,hints:0,hintStage:0,t0:Date.now(),status:'play',rated:null,pv:null,tut:null};
+}
+function startLevel(i,isRestart){
+  if(!isFree(i)){
+    tickStamina();
+    if(stamina<CFG.cost){openNoStamina(i);return;}
+    if(stamina>=CFG.max)regenAt=null;
+    stamina-=CFG.cost;tickStamina();
+  }
+  cur=newAttempt(i);
+  $('menu').classList.add('hidden');$('game').classList.remove('hidden');
+  setupLevel();
+  if(i===0&&!isRestart&&!cleared[0])startTutorial();
+}
+
+/* ───────── 渲染 ───────── */
+function themeOf(){return TH[cur.L.raw.theme];}
+function setupLevel(){
+  const L=cur.L,raw=L.raw,T=themeOf();
+  $('app').dataset.theme=T.key;
+  $('lvtitle').textContent='S'+String(raw.id).padStart(2,'0')+' · '+T.name;
+  $('lvtier').textContent=raw.tier;$('lvtier').className='tier '+TIERCLS[raw.tier];$('lvtier').classList.toggle('hidden',!CFG.showTier);
+  $('lvgoal').innerHTML='用 <b>'+raw.kStar+'</b> '+T.unit+(L.range?'短射程':'')+T.device+'，'+T.verb+'全部'+T.target+'（共 '+L.targets.length+' 格）。'+(isFree(cur.i)?'<span style="color:var(--ok)">本关免体力。</span>':'');
+  const M={
+    C1:['C1',short(T.C1)||'禁覆盖格','不能被照到，但光会穿过它'],
+    C2:['C2',short(T.C2)||'双照格','要两台不同设备照到'],
+    C3:['C3',short(T.C3)||'不可放置格','不能放设备，但要被照到'],
+    R1:['R1',short(T.R1)||'反射格','光碰到会转 90°'],
+    G1:['G1','不得互照','设备不能出现在另一台的光里'],
+    E2:['E2','短射程','每台每个方向只照 '+L.range+' 格'],
+  };
+  const base=['<span><b>基础</b> '+T.device+'照亮自身并四向发光，遇'+T.block+'停止</span>'];
+  $('lvmechs').innerHTML=base.concat(raw.mech.map(m=>M[m]?'<span><b>'+M[m][0]+' '+M[m][1]+'</b>：'+M[m][2]+'</span>':'')).join('');
+  const bw=$('bw'),maxW=Math.min(window.innerWidth-48,400),cell=Math.floor((Math.min(maxW,(window.innerHeight-330)*L.W/L.H)-(L.W-1)*3)/L.W);
+  const cs=Math.max(40,Math.min(76,cell));
+  bw.style.width=(cs*L.W+(L.W-1)*3)+'px';
+  $('board').style.gridTemplateColumns='repeat('+L.W+','+cs+'px)';
+  $('board').innerHTML=L.cells.map((_,i)=>'<div class="cell" data-cell="'+i+'"></div>').join('');
+  render();
+}
+function svgMirror(x){return x==='/'?'<svg viewBox="0 0 40 40"><path d="M6 34L34 6" stroke="#5f6f8a" stroke-width="5" stroke-linecap="round"/></svg>':'<svg viewBox="0 0 40 40"><path d="M6 6L34 34" stroke="#5f6f8a" stroke-width="5" stroke-linecap="round"/></svg>';}
+const SVG_NO='<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="12" fill="none" stroke="#c9564a" stroke-width="3"/><path d="M12 28L28 12" stroke="#c9564a" stroke-width="3"/></svg>';
+const SVG_GLASS='<svg viewBox="0 0 40 40"><rect x="9" y="9" width="22" height="22" rx="3" fill="rgba(140,190,225,.35)" stroke="#5f97bf" stroke-width="2"/><path d="M13 27l14-14" stroke="#fff" stroke-width="2"/></svg>';
+function render(){
+  const L=cur.L,S=SK[themeOf().key],ev=evalBoard(L,cur.placed);cur.ev=ev;
+  const conflictCells=new Set();ev.pairs.forEach(([a,b])=>{conflictCells.add(a);conflictCells.add(b);});
+  const pv=cur.pv,pvTr=pv!=null&&!cur.placed.includes(pv)&&L.cells[pv]==='.'?trace(L,pv):null;
+  const colorOf=p=>COL[cur.placed.indexOf(p)%COL.length];
+  const cells=$('board').children;
+  for(let i=0;i<L.cells.length;i++){
+    const x=L.cells[i],el=cells[i],cls=['cell'];let h='';
+    const isWet=ev.wet.has(i);
+    if(x==='#'){cls.push('wall');h=S.obstacle?'<div class="obs">'+S.obstacle+'</div>':'';}
+    else if(x==='.'){if(isWet)cls.push('wet');h=S.terrain||'';}
+    else if(x==='N'){cls.push('noplace');if(isWet)cls.push('wet');h='<div class="ico">'+SVG_GLASS+'</div><div class="lbl">禁放</div>';}
+    else if(x==='D'){cls.push('double');const n=ev.src[i].size;if(n>=2)cls.push('full');const ss=[...ev.src[i]];h='<div class="slots">'+[0,1].map(k=>'<i style="'+(ss[k]!==undefined?'background:'+colorOf(ss[k])+';border-color:'+colorOf(ss[k]):'')+'"></i>').join('')+'</div><div class="lbl num">双照 '+Math.min(n,2)+'/2</div>';}
+    else if(x==='P'){cls.push('protect');if(ev.viol.has(i))cls.push('hit');h='<div class="ico">'+SVG_NO+'</div><div class="lbl">'+(ev.viol.has(i)?'违规':'禁覆盖')+'</div>';}
+    else if(x==='/'||x==='\\'){cls.push('mirror');h='<div class="ico">'+svgMirror(x)+'</div>';}
+    if(cur.placed.includes(i)){h+='<div class="dev" style="--dc:'+colorOf(i)+'">'+(S.emitter||'')+(L.range?'<span class="rng">'+L.range+'</span>':'')+'</div>';if(conflictCells.has(i))cls.push('conflict');}
+    if(pvTr){if(i===pv)cls.push('pv');else if(pvTr.hits.has(i)&&L.need[i]&&ev.src[i].size<L.need[i])cls.push('pvnew');}
+    if(cur.hintCell===i)cls.push('hintcell');if(cur.hintWrong===i)cls.push('hintwrong');
+    if(cur.tut&&cur.tut.focus!=null&&cur.tut.focus.includes(i))cls.push('focus');
+    el.className=cls.join(' ');el.innerHTML=h;
+  }
+  $('board').classList.toggle('locked',!!(cur.tut&&cur.tut.lock));
+  drawBeams(ev,pvTr?{s:pv,tr:pvTr}:null);
+  // HUD
+  $('h-dev').textContent=cur.placed.length+'/'+L.raw.kStar;
+  $('h-undo').textContent=cur.undoLeft;$('hud-undo').classList.toggle('low',cur.undoLeft<=1);
+  $('h-cov').textContent=ev.covered+'/'+ev.total;
+  $('btn-undo').disabled=!cur.hist.length||cur.undoLeft<=0||cur.status!=='play';
+  $('btn-hint').disabled=cur.status!=='play';
+  statusLine();
+}
+function drawBeams(ev,pv){
+  const L=cur.L,svg=$('beams'),bw=$('bw'),cs=bw.clientWidth/L.W;
+  const cellEl=$('board').children[0];if(!cellEl)return;
+  const step=(bw.clientWidth+3)/L.W; // cell + gap
+  const cx=i=>(i%L.W)*step+(step-3)/2,cy=i=>Math.floor(i/L.W)*step+(step-3)/2;
+  svg.setAttribute('viewBox','0 0 '+bw.clientWidth+' '+bw.clientHeight);
+  let out='';
+  const rayPts=(s,ray,upto)=>{const pts=[[cx(s),cy(s)]];for(const j of ray.path){pts.push([cx(j),cy(j)]);if(j===upto)break;}return pts;};
+  const line=(pts,st)=>'<polyline points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'" fill="none" '+st+'/>';
+  cur.placed.forEach((s,k)=>{
+    const col=COL[k%COL.length];
+    for(const ray of trace(L,s).rays){if(!ray.path.length)continue;const pts=rayPts(s,ray);out+=line(pts,'stroke="'+col+'" stroke-width="3" stroke-opacity=".55" stroke-linecap="round" stroke-linejoin="round"');
+      if(ray.end==='range'){const [x,y]=pts[pts.length-1],[dr,dc]=ray.dir;const ex=x+dc*step*0.42,ey=y+dr*step*0.42;out+='<path d="M'+(ex-dr*7)+' '+(ey-dc*7)+'L'+(ex+dr*7)+' '+(ey+dc*7)+'" stroke="'+col+'" stroke-width="3" stroke-linecap="round"/>';}}
+  });
+  ev.pairs.forEach(([a,b])=>{for(const ray of trace(L,a).rays)if(ray.path.includes(b)){out+=line(rayPts(a,ray,b),'stroke="#b4392f" stroke-width="3.5" stroke-dasharray="6 5" stroke-linecap="round"');}});
+  if(pv){for(const ray of pv.tr.rays){if(!ray.path.length)continue;out+=line(rayPts(pv.s,ray),'stroke="#223038" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"');}
+    out+='<circle cx="'+cx(pv.s)+'" cy="'+cy(pv.s)+'" r="'+(step*0.22)+'" fill="none" stroke="#223038" stroke-width="2.5" stroke-dasharray="4 3"/>';}
+  svg.innerHTML=out;
+}
+function statusLine(){
+  const L=cur.L,ev=cur.ev,T=themeOf(),st=$('status');
+  if(cur.msg){st.className='status '+(cur.msgCls||'info');st.innerHTML=cur.msg;return;}
+  const parts=[];let cls='';
+  if(ev.viol.size){cls='bad';parts.push('C1 违规：'+[...ev.viol].map(i=>coordOf(i,L.W)).join('、')+' 被照到了');}
+  if(ev.pairs.length){cls='bad';const seen=new Set(),ps=[];ev.pairs.forEach(([a,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(!seen.has(k)){seen.add(k);ps.push(coordOf(a,L.W)+' 与 '+coordOf(b,L.W));}});parts.push('G1 互照：'+ps.join('；'));}
+  ev.doubles.forEach(d=>{if(d.n<2&&cur.placed.length)parts.push('双照格 '+coordOf(d.t,L.W)+' '+Math.min(d.n,2)+'/2');});
+  if(!parts.length){
+    if(!cur.placed.length)parts.push('按住任意格子预览覆盖范围，点一下放置。');
+    else if(cur.placed.length>=L.raw.kStar&&!ev.won)parts.push('设备已用完但还有 '+(ev.total-ev.covered)+' 格没完成：需要收回调整（剩余撤回 '+cur.undoLeft+' 次）。');
+    else parts.push('还差 '+(ev.total-ev.covered)+' 格；剩余设备 '+(L.raw.kStar-cur.placed.length)+' 台。');
+  }else if(cur.placed.length>=L.raw.kStar)parts.push('需要收回调整（剩余撤回 '+cur.undoLeft+' 次）');
+  st.className='status '+cls;st.innerHTML=parts.join('；');
+}
+function flash(msg,cls){cur.msg=msg;cur.msgCls=cls;statusLine();clearTimeout(cur.msgT);cur.msgT=setTimeout(()=>{if(cur){cur.msg=null;statusLine();}},2600);}
+
+/* ───────── 操作 ───────── */
+function cellRule(i){
+  const L=cur.L,x=L.cells[i],T=themeOf();
+  return {'#':T.block+'：挡住光线。','N':'C3 '+(short(T.C3)||'不可放置格')+'：不能放设备，但它本身要被照到。','D':'C2 '+(short(T.C2)||'双照格')+'：需要两台不同设备照到（同一台的多条光只算 1 台）。','P':'C1 '+(short(T.C1)||'禁覆盖格')+'：不能被任何光照到；光会穿过它。','/':'R1 '+(short(T.R1)||'反射格')+'：光线碰到会转 90°，不能放设备。','\\':'R1 '+(short(T.R1)||'反射格')+'：光线碰到会转 90°，不能放设备。'}[x]||'';
+}
+function tap(i){
+  if(cur.status!=='play')return;
+  const L=cur.L,x=L.cells[i];
+  if(cur.tut&&cur.tut.lock){if(!cur.tut.focus||!cur.tut.focus.includes(i)||cur.tut.action!=='tap')return;}
+  cur.hintCell=null;cur.hintWrong=null;
+  if(cur.placed.includes(i)){
+    if(cur.tut&&cur.tut.free===false)return;
+    if(cur.undoLeft<=0){flash('撤回次数已用完，不能再收回设备。','bad');return;}
+    cur.placed=cur.placed.filter(p=>p!==i);cur.hist.push({t:'remove',c:i});spendUndo();
+    render();afterMove();return;
+  }
+  if(x!=='.'){flash(cellRule(i)||'这里不能放设备。','info');return;}
+  if(cur.placed.length>=L.raw.kStar){flash('设备已用完：先点一台已放的设备收回（消耗 1 次撤回）。','bad');return;}
+  cur.placed.push(i);cur.hist.push({t:'place',c:i});cur.places++;
+  render();afterMove();
+  if(cur.tut)tutAfterTap(i);
+}
+function spendUndo(){if(cur.tut)return;cur.undoLeft--;cur.undoUsed++;}
+function undo(){
+  if(cur.status!=='play'||!cur.hist.length||cur.undoLeft<=0)return;
+  const h=cur.hist.pop();
+  if(h.t==='place')cur.placed=cur.placed.filter(p=>p!==h.c);else cur.placed.push(h.c);
+  spendUndo();cur.hintCell=null;cur.hintWrong=null;render();afterMove();
+}
+function afterMove(){
+  const L=cur.L,ev=cur.ev;
+  if(ev.won){finish(true);return;}
+  if(cur.placed.length>=L.raw.kStar&&cur.undoLeft<=0&&!cur.tut){finish(false,'撤回次数用完，设备也已摆满，无法再调整。');}
+}
+function finish(win,reason){
+  cur.status=win?'won':'failed';
+  const sec=Math.round((Date.now()-cur.t0)/1000);
+  if(win){cleared[cur.i]=true;if(!isFree(cur.i)){stamina=Math.min(CFG.max,stamina+CFG.refund);tickStamina();}}
+  const rec={id:cur.L.raw.id,tier:cur.L.raw.tier,result:win?'通关':'失败',sec,places:cur.places,undoUsed:cur.undoUsed,hints:cur.hints,rating:null};
+  records.push(rec);cur.rec=rec;render();
+  setTimeout(()=>resultDialog(win,reason),win?380:120);
+}
+
+/* ───────── 结果弹窗 ───────── */
+function chainHTML(raw){
+  return '<ol class="chain">'+raw.steps.map(s=>{const [n,c]=STEPNAME[s.tier];const why=s.tier==='G'?(s.cands+' 选 1，猜错最多耗 '+s.worstCost+' 次撤回'):s.why.join('；').replace('路口推理：','');return '<li><span class="tg '+c+'">'+n+'</span>先看 '+LC(s.target)+' → 放 <b>'+s.place.map(LC).join('、')+'</b><br><span style="color:var(--muted)">'+why+'</span></li>';}).join('')+'</ol>';
+}
+function metricsHTML(raw){
+  const m=raw.metrics,c=m.count,parts=Object.entries(c).filter(([k,v])=>v).map(([k,v])=>STEPNAME[k][0]+'×'+v).join('、');
+  return '<table><tr><th>档位</th><td>'+raw.tier+'</td><th>开局</th><td>'+STEPNAME[m.opening][0]+'</td></tr><tr><th>推理步</th><td colspan="3">'+parts+'</td></tr><tr><th>需尝试</th><td>'+m.guesses+' 次</td><th>最坏试错</th><td>'+m.worstTrial+' 次撤回</td></tr></table>';
+}
+function rateRow(){return '<p style="margin-top:10px"><b>你的感受：</b></p><div class="row" id="rate">'+['太简单','刚好','有点难','太难'].map(r=>'<button data-rate="'+r+'">'+r+'</button>').join('')+'</div>';}
+function resultDialog(win,reason){
+  const raw=cur.L.raw,T=themeOf(),r=cur.rec;
+  let h='<h2>'+(win?T.finish:'未能完成')+'</h2>';
+  h+='<p>'+(win?'用时 <b class="num">'+r.sec+'s</b>，放置 '+r.places+' 次，撤回 '+r.undoUsed+' 次，提示 '+r.hints+' 次。'+(isFree(cur.i)?'':'体力返还 '+CFG.refund+'。'):(reason||'')+' 本局体力不返还。')+'</p>';
+  h+=rateRow();
+  if(win){h+='<p style="margin-top:12px"><b>参考推理链</b>（生成器按人的推理方式求解）</p>'+chainHTML(raw)+metricsHTML(raw);}
+  else h+='<details style="margin-top:10px"><summary style="font-size:13px;cursor:pointer">查看推理链（会剧透）</summary>'+chainHTML(raw)+metricsHTML(raw)+'</details>';
+  const next=cur.i+1<LV.length;
+  h+='<div class="row">'+(win&&next?'<button class="pri" data-act="next">下一关</button>':'')+'<button '+(win?'':'class="pri"')+' data-act="restart">'+(win?'再玩':'重开')+(isFree(cur.i)?'':' -'+CFG.cost+'体力')+'</button><button data-act="menu">选关</button></div>';
+  openDlg(h);
+  $('dlgbody').querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>{r.rating=b.dataset.rate;$('dlgbody').querySelectorAll('[data-rate]').forEach(x=>x.classList.toggle('on',x===b));});
+  $('dlgbody').querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act,i=cur.i;closeDlg();if(a==='next')startLevel(i+1);else if(a==='restart')startLevel(i,true);else showMenu();});
+}
+function openDlg(h){$('dlgbody').innerHTML=h;if(!$('dlg').open)$('dlg').showModal();}
+function closeDlg(){if($('dlg').open)$('dlg').close();}
+function openNoStamina(i){
+  tickStamina();const s=regenAt?Math.ceil((regenAt-Date.now())/1000):0;
+  openDlg('<h2>体力不足</h2><p>开局需要 '+CFG.cost+' 体力，当前 '+stamina+'。每 '+Math.round(CFG.regenSec/60*10)/10+' 分钟恢复 1 点，下一点约 '+s+' 秒后。</p><p class="tip">体验用：可在“后台”里直接回满。</p><div class="row"><button class="pri" data-x="fill">回满体力（调试）</button><button data-x="close">返回</button></div>');
+  $('dlgbody').querySelector('[data-x=fill]').onclick=()=>{stamina=CFG.max;regenAt=null;tickStamina();closeDlg();startLevel(i);};
+  $('dlgbody').querySelector('[data-x=close]').onclick=closeDlg;
+}
+
+/* ───────── 提示 ───────── */
+function hint(){
+  if(cur.status!=='play')return;
+  const L=cur.L,raw=L.raw,ans=new Set(raw.answer.map(a=>a.cell));
+  cur.hints++;cur.hintCell=null;cur.hintWrong=null;
+  const wrong=cur.placed.filter(p=>!ans.has(p));
+  if(wrong.length){
+    if(cur.hintStage===0){cur.hintStage=1;flash('当前布局里有设备不在正确位置上：这样摆无法完成。','bad');}
+    else{cur.hintWrong=wrong[0];cur.hintStage=0;flash('红框这台放错了：'+coordOf(wrong[0],L.W)+'。','bad');}
+    render();return;
+  }
+  const idx=s=>{const m=/([A-F])(\d)/.exec(s);return (Number(m[2])-1)*L.W+(m[1].charCodeAt(0)-65);};
+  const step=raw.steps.find(s=>s.place.some(p=>!cur.placed.includes(idx(p))));
+  if(!step){flash('全部设备都已就位。','ok');return;}
+  const [n]=STEPNAME[step.tier];
+  if(cur.hintStage===0){cur.hintStage=1;cur.hintCell=idx(step.target);flash('提示 1：先看金框这格（'+LC(step.target)+'）——哪些位置能照到它？思路类型：'+n+'。','info');}
+  else{cur.hintStage=0;const p=step.place.map(idx).find(c=>!cur.placed.includes(c));cur.hintCell=p;flash('提示 2：放在 '+coordOf(p,L.W)+'。'+(step.tier==='G'?'这一步需要尝试。':step.why.join('；').replace('路口推理：','')),'info');}
+  render();
+}
+
+/* ───────── 新手指引（第 1 关） ───────── */
+function startTutorial(){
+  const L=cur.L,c=i=>coordOf(i,L.W),T=themeOf();
+  cur.tut={k:0,lock:true,free:false,steps:[
+    {text:'<b>目标</b>：用 2 台'+T.device+T.verb+'全部'+T.target+'。'+T.device+'会照亮自己所在格，并向上下左右发光，遇到'+T.block+'就停。指引期间不消耗撤回。',focus:null,action:'next'},
+    {text:'先找<b>最难照到的格子</b>。看 '+c(0)+'：它下面是'+T.block+'，只有第一行的'+T.device+'能照到它。',focus:[0,1,2,3],action:'next'},
+    {text:'第一行有 4 个位置可选。<b>按住 '+c(2)+' 不松手</b>，预览它能照到哪里。',focus:[2],action:'press'},
+    {text:'它照亮了整个第一行，还能顺着 C 列一路照到底，比第一行其他位置照得都多。<b>松手后点一下 '+c(2)+'</b> 放下'+T.device+'。',focus:[2],action:'tap'},
+    {text:'还剩 3 格没亮。哪个位置能一次全部照到？<b>自己试试</b>，可以先按住预览。<br>正式关卡里：收回设备和撤销都消耗撤回次数，每关只有 '+CFG.undo+' 次。',focus:null,action:'free'},
+  ]};
+  showTut();
+}
+function showTut(){
+  const t=cur.tut;if(!t)return;const s=t.steps[t.k];
+  t.focus=s.focus;t.action=s.action;t.lock=s.action!=='free';t.free=s.action==='free';
+  $('coachtext').innerHTML=s.text;$('coachnext').classList.toggle('hidden',s.action!=='next');$('coachnext').textContent='下一步';
+  if(s.action==='free'){$('coachnext').classList.remove('hidden');$('coachnext').textContent='知道了';}
+  const box=$('coachbox');box.classList.add('on');
+  render();
+  const bw=$('bw').getBoundingClientRect(),app=$('app').getBoundingClientRect();
+  const cardEl=$('game').querySelector('.card').getBoundingClientRect();box.style.top=(cardEl.bottom-app.top+8)+'px';
+}
+function tutNext(){const t=cur.tut;if(!t)return;if(t.k>=t.steps.length-1){endTut();return;}t.k++;showTut();}
+function endTut(){if(!cur||!cur.tut)return;cur.tut=null;$('coachbox').classList.remove('on');render();}
+function tutAfterTap(i){const t=cur.tut;if(!t)return;const s=t.steps[t.k];if(s.action==='tap'&&s.focus.includes(i))tutNext();else if(s.action==='free'&&cur.ev.won)endTut();}
+$('coachnext').onclick=tutNext;$('coachskip').onclick=endTut;
+
+/* ───────── 长按预览 ───────── */
+let press=null;
+$('board').addEventListener('pointerdown',e=>{
+  const el=e.target.closest('[data-cell]');if(!el||!cur||cur.status!=='play')return;
+  const i=Number(el.dataset.cell);
+  if(cur.tut&&cur.tut.lock&&!(cur.tut.focus&&cur.tut.focus.includes(i)))return;
+  e.preventDefault();
+  press={i,shown:false,id:e.pointerId,timer:setTimeout(()=>{press.shown=true;showPreview(i);},300)};
+});
+function endPress(e,fire){
+  if(!press)return;clearTimeout(press.timer);const p=press;press=null;
+  if(p.shown){cur.pv=null;cur.msg=null;render();if(cur.tut&&cur.tut.steps[cur.tut.k].action==='press'&&p.i===cur.tut.focus[0])tutNext();return;}
+  if(fire)tap(p.i);
+}
+$('board').addEventListener('pointerup',e=>endPress(e,true));
+$('board').addEventListener('pointercancel',e=>endPress(e,false));
+$('board').addEventListener('pointerleave',e=>endPress(e,false));
+$('board').addEventListener('contextmenu',e=>e.preventDefault());
+function showPreview(i){
+  const L=cur.L,x=L.cells[i];
+  if(cur.placed.includes(i)){cur.pv=null;cur.msg='这台已放下（彩色实线是它的覆盖范围）。点一下会收回，消耗 1 次撤回。';cur.msgCls='info';render();return;}
+  if(x!=='.'){cur.pv=null;cur.msg=cellRule(i);cur.msgCls='info';render();return;}
+  cur.pv=i;render();
+  const tr=trace(L,i),ev=cur.ev;let add=0;tr.hits.forEach(h=>{if(L.need[h]&&ev.src[h].size<L.need[h])add++;});
+  const warn=[];[...tr.hits].filter(h=>L.cells[h]==='P').forEach(h=>warn.push('会照到禁覆盖格 '+coordOf(h,L.W)));
+  if(L.g1){cur.placed.forEach(p=>{if(tr.hits.has(p))warn.push('会照到已放的 '+coordOf(p,L.W));if(trace(L,p).hits.has(i))warn.push('位于 '+coordOf(p,L.W)+' 的光里');});}
+  cur.msg='预览 '+coordOf(i,L.W)+'：新增覆盖 '+add+' 格'+(warn.length?'；<b style="color:var(--bad)">'+warn.join('；')+'</b>':'')+'。松手取消。';cur.msgCls=warn.length?'bad':'info';statusLine();
+}
+
+/* ───────── 选关 / 记录 / 后台 ───────── */
+function showMenu(){
+  cur=null;$('coachbox').classList.remove('on');$('app').dataset.theme='stage';
+  $('game').classList.add('hidden');$('menu').classList.remove('hidden');
+  $('levels').innerHTML=LV.map((l,i)=>{const T=TH[l.theme];return '<button class="lvbtn" data-lv="'+i+'"><span class="r1">S'+String(l.id).padStart(2,'0')+' '+T.name+(cleared[i]?'<span class="done">✓</span>':'')+'</span><span class="r2">'+(CFG.showTier?'<span class="tier '+TIERCLS[l.tier]+'">'+l.tier+'</span> ':'')+(l.mech.join(' + ')||'基础')+' · '+l.w+'×'+l.h+' · '+l.kStar+' 台 '+(isFree(i)?'<span class="free">免体力</span>':'')+'</span></button>';}).join('');
+  $('levels').querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>startLevel(Number(b.dataset.lv)));
+  tickStamina();
+}
+function leaveGuard(fn){
+  if(cur&&cur.status==='play'&&(cur.placed.length||cur.hist.length)){
+    openDlg('<h2>放弃本局？</h2><p>离开会记为失败，'+(isFree(cur.i)?'':'已扣的 '+CFG.cost+' 体力不返还。')+'</p><div class="row"><button class="pri" data-x="y">放弃</button><button data-x="n">继续玩</button></div>');
+    $('dlgbody').querySelector('[data-x=y]').onclick=()=>{closeDlg();records.push({id:cur.L.raw.id,tier:cur.L.raw.tier,result:'放弃',sec:Math.round((Date.now()-cur.t0)/1000),places:cur.places,undoUsed:cur.undoUsed,hints:cur.hints,rating:null});fn();};
+    $('dlgbody').querySelector('[data-x=n]').onclick=closeDlg;
+  }else fn();
+}
+$('btn-levels').onclick=()=>leaveGuard(showMenu);
+$('btn-undo').onclick=undo;$('btn-hint').onclick=hint;
+$('btn-restart').onclick=()=>{if(!cur)return;const i=cur.i;leaveGuard(()=>startLevel(i,true));};
+$('btn-quit').onclick=()=>{if(!cur||cur.status!=='play')return;finish(false,'你主动放弃了本局。');};
+$('btn-log').onclick=()=>{
+  const lines=['样本\t档位\t结果\t用时s\t放置\t撤回\t提示\t评价'].concat(records.map(r=>['S'+String(r.id).padStart(2,'0'),r.tier,r.result,r.sec,r.places,r.undoUsed,r.hints,r.rating||'-'].join('\t')));
+  const rows=records.map(r=>'<tr><td>S'+String(r.id).padStart(2,'0')+'</td><td>'+r.tier+'</td><td>'+r.result+'</td><td class="num">'+r.sec+'</td><td class="num">'+r.places+'</td><td class="num">'+r.undoUsed+'</td><td class="num">'+r.hints+'</td><td>'+(r.rating||'—')+'</td></tr>').join('');
+  openDlg('<h2>体验记录</h2><p class="tip">刷新页面会清空。复制后直接发回即可。</p><table><tr><th>样本</th><th>档位</th><th>结果</th><th>用时</th><th>放置</th><th>撤回</th><th>提示</th><th>评价</th></tr>'+(rows||'<tr><td colspan="8">还没有记录</td></tr>')+'</table><textarea id="logtxt" readonly>'+lines.join('\n')+'</textarea><div class="row"><button class="pri" id="cp">复制</button><button id="cl">关闭</button></div>');
+  $('cp').onclick=()=>{const t=$('logtxt');t.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(t.value).then(()=>{$('cp').textContent='已复制';},()=>{$('cp').textContent=ok?'已复制':'请手动复制';});else $('cp').textContent=ok?'已复制':'请手动复制';};
+  $('cl').onclick=closeDlg;
+};
+$('btn-admin').onclick=()=>{
+  const f=[['undo','每关撤回次数'],['max','体力上限'],['cost','开局消耗'],['regenSec','恢复 1 点所需秒数'],['refund','通关返还'],['freeLevels','前 N 关免体力']];
+  openDlg('<h2>后台参数（体验用）</h2><p class="tip">修改后对下一局生效。正式口径：撤回 5、体力 50 / 开局 10 / 3 分钟回 1 / 通关返还 10、第 1–10 关免体力；本样本只有 10 关，默认只让第 1 关免体力，方便体验体力消耗。</p><div class="form">'+f.map(([k,n])=>'<label for="cfg-'+k+'">'+n+'</label><input id="cfg-'+k+'" type="number" min="0" value="'+CFG[k]+'">').join('')+'<label for="cfg-st">当前体力</label><input id="cfg-st" type="number" min="0" value="'+stamina+'"><label for="cfg-tier">显示档位</label><input id="cfg-tier" type="checkbox" style="height:20px;width:20px" '+(CFG.showTier?'checked':'')+'></div><div class="row"><button class="pri" id="sv">保存</button><button id="fill">回满体力</button><button id="cx">关闭</button></div>');
+  $('sv').onclick=()=>{f.forEach(([k])=>{const v=Number($('cfg-'+k).value);if(Number.isFinite(v)&&v>=0)CFG[k]=Math.round(v);});CFG.regenSec=Math.max(1,CFG.regenSec);CFG.max=Math.max(1,CFG.max);stamina=Math.min(CFG.max,Math.max(0,Math.round(Number($('cfg-st').value)||0)));regenAt=null;CFG.showTier=$('cfg-tier').checked;tickStamina();closeDlg();if(!cur)showMenu();else $('lvtier').classList.toggle('hidden',!CFG.showTier);};
+  $('fill').onclick=()=>{stamina=CFG.max;regenAt=null;tickStamina();$('cfg-st').value=stamina;};
+  $('cx').onclick=closeDlg;
+};
+window.addEventListener('resize',()=>{if(cur)setupLevel();});
+$('dlg').addEventListener('cancel',e=>{if(cur&&cur.status!=='play'){e.preventDefault();}});
+
+/* ───────── 自检：每关参考解必须通关，且不能用更少设备 ───────── */
+window.FillItUp={
+  selfTest(){const res=LV.map(raw=>{const L=prep(raw);const ans=raw.answer.map(a=>a.cell);return {id:raw.id,won:evalBoard(L,ans).won,count:ans.length===raw.kStar};});return {pass:res.every(r=>r.won&&r.count),res};},
+  state:()=>cur&&{i:cur.i,placed:cur.placed.slice(),undoLeft:cur.undoLeft,undoUsed:cur.undoUsed,status:cur.status,won:cur.ev&&cur.ev.won,covered:cur.ev&&cur.ev.covered,total:cur.ev&&cur.ev.total,tut:cur.tut?cur.tut.k:null,pv:cur.pv},
+  stamina:()=>({stamina,cfg:Object.assign({},CFG)}),records:()=>records.slice(),levels:LV,
+};
+const st0=window.FillItUp.selfTest();if(!st0.pass)console.error('自检失败',st0);
+showMenu();
+</script>
+</body>
+</html>
