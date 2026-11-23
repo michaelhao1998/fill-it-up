@@ -519,7 +519,7 @@ function explain(step,placed){
   // 路口陷阱：本步正确位置恰好是“路口直觉”会选错的地方 → 讲清为什么看起来更好的那格不对
   const it=(L.raw.metrics&&L.raw.metrics.intuition)||{traps:[]},idx=s=>{const m=/([A-H])(\d)/.exec(s);return (Number(m[2])-1)*L.W+(m[1].charCodeAt(0)-65);};
   const trap=it.traps.find(x=>x.strong&&ps.includes(idx(x.right))&&!placed.includes(idx(x.wrong)));
-  if(trap){const w=idx(trap.wrong);text+='<br><b style="color:#b3531f">⚠ 路口陷阱</b>：'+(trap.gainWrong>trap.gainRight?'<b>'+C(w)+'</b> 能新增照亮 '+trap.gainWrong+' 格，比这里的 '+trap.gainRight+' 格更多，':'<b>'+C(w)+'</b> 看起来照得一样多，')+'像个好路口，但放在那里'+(trap.undo>1?'，再往下放 '+(trap.undo-1)+' 台左右就会':'会马上')+'出现照不到的格子（要收回 '+trap.undo+' 台）。'+(trap.mirror?'这里靠的是镜子把光拐过去，容易被忽略。':'');mark.x=mark.x.concat([w]);}
+  if(trap){const w=idx(trap.wrong),ev0=evalBoard(L,placed),gn=c=>[...trace(L,c).hits].filter(h=>L.need[h]&&ev0.src[h].size<L.need[h]).length,gw=gn(w),gp=gn(ps.find(c=>c===idx(trap.right)));text+='<br><b style="color:#b3531f">⚠ 路口陷阱</b>：'+(gw>gp?'<b>'+C(w)+'</b> 能新增照亮 '+gw+' 格，比 '+C(idx(trap.right))+' 的 '+gp+' 格更多，':'<b>'+C(w)+'</b> 看起来照得差不多，')+'像个好路口，但放在那里'+(trap.undo>1?'，再往下放 '+(trap.undo-1)+' 台左右就会':'会马上')+'出现照不到的格子（要收回 '+trap.undo+' 台）。'+(trap.mirror?'这里靠的是镜子把光拐过去，容易被忽略。':'');mark.x=mark.x.concat([w]);}
   mark.pick=ps;return {text,mark,target:t,place:ps};
 }
 function nextStep(){const raw=cur.L.raw;return raw.steps.find(s=>s.p.some(c=>!cur.placed.includes(c)));}
