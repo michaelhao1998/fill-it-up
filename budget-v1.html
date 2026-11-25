@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:,">
+<title>fill it up · 预算对账专题 v1</title>
+<style>
+:root{--page:#f4f6f7;--card:#fff;--tile:#fff;--wet:#cfe8f5;--wall:#cdd6dc;--accent:#2b7fa8;--beam:#4aa3cc;--ink:#223038;--muted:#6c7b83;--line:#dde4e8;--warn:#b3531f;--ok:#1d7a5a;--bad:#b4392f;--gold:#d9a000}
+[data-theme="ice"]{--page:#eef7fc;--wet:#bfe2f4;--wall:#c8d7df;--accent:#2b7fa8;--beam:#4aa3cc}
+[data-theme="garden"]{--page:#f3f7ee;--tile:#fffdf8;--wet:#cfe6b4;--wall:#d8d3c2;--accent:#5b8436;--beam:#79a84b}
+[data-theme="stage"]{--page:#f6f2fb;--tile:#fffdf9;--wet:#f5e2a8;--wall:#d6d2dd;--accent:#8a63ae;--beam:#c79a3e}
+[data-theme="museum"]{--page:#f2f6f7;--wet:#bfe0e6;--wall:#cdd6d9;--accent:#3b6d78;--beam:#4b97a5}
+[data-theme="fire"]{--page:#fbf3ee;--tile:#fffdfa;--wet:#c7dce8;--wall:#d9d2ca;--accent:#b45b2c;--beam:#3f8fb8}
+[data-theme="space"]{--page:#f1f5f7;--wet:#c9e6e9;--wall:#cbd6dc;--accent:#36718c;--beam:#4fa3ae}
+[data-theme="warehouse"]{--page:#f8f5ee;--tile:#fffdf8;--wet:#d9e9c4;--wall:#d8d0bd;--accent:#6a7c34;--beam:#84a748}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:"Microsoft YaHei","微软雅黑",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+.num{font-family:"IBM Plex Mono",Consolas,monospace}
+#app{max-width:440px;margin:0 auto;padding:10px 12px 18px;position:relative;min-height:100vh}
+.top{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}
+@media(max-width:380px){.top{font-size:11px;gap:4px}.top .pill{padding:3px 6px}.top button{padding:0 6px}}
+.top .pill{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.top .pill b{font-size:13px}
+.top .sp{flex:1}
+.top button{border:1px solid var(--line);background:#fff;border-radius:8px;height:28px;padding:0 9px;font:12px inherit;font-family:inherit;color:var(--ink);cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:9px}
+.title{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.title h1{font-size:16px;margin:0}
+.tier{font-size:11px;padding:1px 7px;border-radius:5px;color:#fff;background:#7b8a91}
+.tier.t0{background:#5a9a72}.tier.t1{background:#3f86a8}.tier.t2{background:#c07b2c}.tier.t3{background:#b4392f}
+.sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.mechs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.mechs span{font-size:11px;background:#f2f5f6;border:1px solid var(--line);border-radius:6px;padding:2px 6px;line-height:1.45}
+.mechs span b{color:var(--accent)}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.hud div{background:#f6f8f9;border-radius:8px;padding:5px 6px;text-align:center;font-size:11px;color:var(--muted)}
+.hud div b{display:block;font-size:17px;color:var(--ink);font-family:"IBM Plex Mono",Consolas,monospace}
+.hud .low b{color:var(--bad)}
+.boardwrap{position:relative;margin:10px auto 0;touch-action:none;user-select:none;-webkit-user-select:none}
+.board{display:grid;gap:3px;position:relative}
+.cell{position:relative;aspect-ratio:1/1;border-radius:7px;background:var(--tile);border:1px solid var(--line);overflow:hidden;cursor:pointer}
+.cell.wet{background:var(--wet)}
+.cell.wall{background:var(--wall);cursor:default;border-color:transparent}
+.cell.noplace{background:#e7f2fa;border:1.5px dashed #8bb8d4;cursor:default}
+.cell.noplace.wet{background:#bfe0f2}
+.cell.double{background:#fff5d8;border:1.5px solid #d6b25f;cursor:default}
+.cell.double.full{background:#ffe7a3}
+.cell.protect{background:#fff3f1;border:1.5px dashed #d47e72;cursor:default}
+.cell.protect.hit{background:#f9c9c2;border:2px solid var(--bad)}
+.cell.mirror{background:#eef1f8;border-color:#9cabc4;cursor:default}
+.cell .terrain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
+.cell .terrain .wet-detail{display:none}.cell.wet .terrain .wet-detail{display:block}.cell.wet .terrain .dry-detail{display:none}
+.cell .obs{position:absolute;inset:0}.cell .obs svg{width:100%;height:100%}
+.cell .lbl{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:9px;line-height:1.1;color:var(--muted);pointer-events:none}
+.cell .ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cell .ico svg{width:70%;height:70%}
+.cell .slots{position:absolute;top:4px;left:0;right:0;display:flex;justify-content:center;gap:4px;pointer-events:none}
+.cell .slots i{width:9px;height:9px;border-radius:50%;border:1.5px solid #b48c35;background:#fff}
+.cell .dev{position:absolute;inset:7%;border-radius:8px;background:#fff;border:2px solid var(--dc,var(--accent));z-index:3;pointer-events:none}
+.cell .dev svg{width:100%;height:100%}
+.cell .dev .rng{position:absolute;right:-5px;top:-6px;background:var(--warn);color:#fff;border-radius:7px;min-width:14px;height:14px;font:9px/14px Consolas,monospace;text-align:center}
+.cell.conflict .dev{border-color:var(--bad);box-shadow:0 0 0 3px rgba(180,57,47,.25)}
+.cell.hintcell{outline:3px solid var(--gold);outline-offset:-3px;z-index:6}
+.cell.hintwrong{box-shadow:inset 0 0 0 3px var(--bad)}
+.cell.pv{outline:2px solid var(--accent);outline-offset:-2px}
+.cell.pvnew::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(43,127,168,.18) 0 4px,transparent 4px 8px);pointer-events:none;z-index:2}
+.coord{position:absolute;font-size:9px;color:var(--muted);font-family:Consolas,monospace}
+#beams{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
+.status{font-size:12px;line-height:1.55;margin-top:8px;padding:7px 9px;border-radius:8px;background:#f2f6f7;color:var(--muted);min-height:36px}
+.status.bad{background:#fdeeeb;color:var(--bad)}.status.ok{background:#eaf6f0;color:var(--ok)}.status.info{background:#eef5fa;color:#2b6a88}
+.actions{display:flex;gap:6px;margin-top:9px}
+.actions button{flex:1;height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font:13px "Microsoft YaHei",sans-serif;cursor:pointer}
+.actions button:disabled{opacity:.45;cursor:not-allowed}
+.actions button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.tip{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.55}
+.levels{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.seg{grid-column:1/-1;font-size:11px;color:var(--muted);margin:6px 0 -2px;display:flex;align-items:center;gap:6px}.seg::after{content:"";flex:1;height:1px;background:var(--line)}
+.lvbtn .new{font-size:10px;color:#8a5a00;border:1px solid #e0b64a;background:#fff8e1;border-radius:4px;padding:0 4px}
+.cell.cand{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.cg0{box-shadow:inset 0 0 0 3px #2e8a5f;background-image:linear-gradient(rgba(46,138,95,.14),rgba(46,138,95,.14))}
+.cell.cg1{box-shadow:inset 0 0 0 3px #c0602e;background-image:linear-gradient(rgba(192,96,46,.14),rgba(192,96,46,.14))}
+.cell.cg2{box-shadow:inset 0 0 0 3px #6a4fa3;background-image:linear-gradient(rgba(106,79,163,.14),rgba(106,79,163,.14))}
+.cell.cg3{box-shadow:inset 0 0 0 3px #2b7fa8;background-image:linear-gradient(rgba(43,127,168,.14),rgba(43,127,168,.14))}
+.cell .gno{position:absolute;left:2px;top:2px;min-width:17px;height:17px;border-radius:9px;background:#fff;border:1.5px solid currentColor;font:700 12px/15px "Microsoft YaHei",sans-serif;text-align:center;z-index:7;pointer-events:none}
+.cell.pick{outline:4px solid #223038;outline-offset:-4px;z-index:6}
+.cell.pick::after{content:"放";position:absolute;right:2px;bottom:2px;background:#223038;color:#fff;font-size:10px;line-height:14px;padding:0 3px;border-radius:4px;z-index:8;pointer-events:none}
+.cell.cg4{box-shadow:inset 0 0 0 3px #b8396b;background-image:linear-gradient(rgba(184,57,107,.14),rgba(184,57,107,.14))}
+.cell.cg5{box-shadow:inset 0 0 0 3px #7a6a1f;background-image:linear-gradient(rgba(122,106,31,.16),rgba(122,106,31,.16))}
+.cell.cg6{box-shadow:inset 0 0 0 3px #2c8c8c;background-image:linear-gradient(rgba(44,140,140,.14),rgba(44,140,140,.14))}
+.gt0{color:#2e8a5f}.gt1{color:#c0602e}.gt2{color:#6a4fa3}.gt3{color:#2b7fa8}.gt4{color:#b8396b}.gt5{color:#7a6a1f}.gt6{color:#2c8c8c}
+.cell.candx::before{content:"✕";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--bad);z-index:5;pointer-events:none;opacity:.8}
+.cell .room{position:absolute;inset:0;pointer-events:none;z-index:0}
+.cell .room.r0{background:repeating-linear-gradient(45deg,rgba(43,127,168,.16) 0 5px,transparent 5px 11px)}
+.cell .room.r1{background:repeating-linear-gradient(-45deg,rgba(192,96,46,.16) 0 5px,transparent 5px 11px)}
+.cell .room.r2{background:repeating-linear-gradient(0deg,rgba(106,79,163,.16) 0 4px,transparent 4px 10px)}
+.rmA{color:#2b7fa8;font-weight:700}.rmB{color:#c0602e;font-weight:700}.rmC{color:#6a4fa3;font-weight:700}
+.concepts{display:grid;grid-template-columns:1fr;gap:6px;margin:10px 0 4px}
+.concepts div{font-size:13px;line-height:1.55;background:var(--page);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.concepts b{color:var(--accent)}
+.focustag{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:#8a4fb3;border-radius:6px;padding:1px 7px;margin-right:6px}
+.lvbtn .lay{display:block;font-size:12px;color:#8a4fb3;font-weight:700;margin-top:2px}
+.mechcard{border:1px solid #e0b64a;background:#fffdf3;border-radius:10px;padding:9px 11px;margin:8px 0;font-size:13px;line-height:1.6}
+.mechcard b{color:#8a5a00}
+.lvbtn{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.lvbtn .r1{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600}
+.lvbtn .r2{font-size:11px;color:var(--muted)}
+.lvbtn .done{margin-left:auto;color:var(--ok);font-size:12px}
+.lvbtn .free{font-size:10px;color:var(--ok);border:1px solid #a9d3be;border-radius:4px;padding:0 4px}
+dialog{border:none;border-radius:14px;padding:0;width:min(92vw,420px);max-height:88vh;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,26,30,.45)}
+.dlg{padding:14px 15px 15px;overflow:auto;max-height:88vh}
+.dlg h2{margin:0 0 6px;font-size:17px}
+.dlg p{font-size:13px;line-height:1.6;margin:6px 0}
+.dlg table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.dlg td,.dlg th{border-bottom:1px solid var(--line);padding:5px 4px;text-align:left;vertical-align:top}
+.dlg th{color:var(--muted);font-weight:500}
+.dlg .row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.dlg .row button{flex:1;min-width:64px;padding:0 4px;height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;font:13px "Microsoft YaHei",sans-serif;cursor:pointer}
+.dlg .row button.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dlg .row button.on{background:#223038;color:#fff}
+.chain{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.65}
+.chain .tg{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:4px;color:#fff;vertical-align:1px}
+.tg.easy{background:#5a9a72}.tg.mid{background:#3f86a8}.tg.deep{background:#c07b2c}.tg.guess{background:#b4392f}
+.form{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;font-size:13px}
+.form input{height:30px;border:1px solid var(--line);border-radius:7px;padding:0 7px;font:13px Consolas,monospace;width:100%}
+textarea{width:100%;height:150px;font:11px/1.5 Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:6px}
+#coachbox{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;width:min(420px,calc(100vw - 20px));z-index:30;background:#fffdf3;border:2px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6;box-shadow:0 6px 18px rgba(0,0,0,.18);display:none}
+#coachbox.on{display:block}
+#coachbox b{color:#8a5a00}
+#coachbox .cb{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+#coachbox button{height:30px;padding:0 12px;border-radius:8px;border:1px solid #d9a000;background:#f0b400;color:#3b2a00;font:12px "Microsoft YaHei",sans-serif;cursor:pointer}
+#coachbox button.ghost{background:#fff;color:#8a5a00}
+.board.locked .cell{cursor:default}
+.board.locked .cell.focus{cursor:pointer;box-shadow:inset 0 0 0 3px var(--gold);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 5px rgba(217,160,0,.45)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app" data-theme="stage">
+  <div class="top">
+    <span class="pill">体力 <b class="num" id="st">50</b><span class="num" id="stmax">/50</span></span>
+    <span class="pill num" id="regen" title="下一点体力恢复">满</span>
+    <span class="sp"></span>
+    <button id="btn-levels">选关</button>
+    <button id="btn-log">体验记录</button>
+    <button id="btn-admin">后台</button>
+  </div>
+
+  <section id="menu" class="card">
+    <div class="title"><h1>预算对账 · 专题 6 关</h1></div>
+    <p class="sub"><b>预算对账</b>：设备数是“刚好够”的最少台数。找出几个<b>照亮位置互不重叠</b>的难照格子——每台设备最多帮其中一格；如果它们正好要用掉剩下的全部设备，那么每台都只能放进这些格子的照亮范围里，<b>范围外的位置一律不能放</b>。</p>
+    <div class="concepts" id="concepts"></div>
+    <div class="levels" id="levels"></div>
+    <p class="tip">本页是专题练习：6 关都以预算对账为关键一步，全部免体力。在正式关卡里，它只会出现在<b>少数挑战关和部分难题关</b>，大部分关卡靠死角格和路口推理就能解开。规则与 30 关版相同：按住预览，点一下放置，收回和撤销都消耗撤回次数（每关 5 次）。卡住时点“提示”，第二次提示会画出分组并讲清账是怎么对上的。进度保存在本机浏览器。</p>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="card">
+      <div class="title"><h1 id="lvtitle"></h1><span class="tier" id="lvtier"></span></div>
+      <div class="sub" id="lvgoal"></div>
+      <div class="mechs" id="lvmechs"></div>
+      <div class="hud">
+        <div id="hud-dev">设备<b class="num" id="h-dev">0/0</b></div>
+        <div id="hud-undo">撤回剩余<b class="num" id="h-undo">5</b></div>
+        <div>已覆盖<b class="num" id="h-cov">0/0</b></div>
+      </div>
+      <div class="boardwrap" id="bw">
+        <div class="board" id="board"></div>
+        <svg id="beams"></svg>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="actions">
+        <button id="btn-undo">撤销</button>
+        <button id="btn-hint">提示</button>
+        <button id="btn-restart">重开</button>
+        <button id="btn-quit">放弃</button>
+      </div>
+      <p class="tip">按住 0.3 秒预览：虚线是这一台会照到的范围，斜纹格是新增覆盖；预览不放置、不扣撤回。提示时，蓝框是能照到目标的位置，红叉是被机制排除的位置。</p>
+    </div>
+    <div id="coachbox"><div id="coachtext"></div><div class="cb"><button class="ghost" id="coachskip">跳过指引</button><button id="coachnext">下一步</button></div></div>
+  </section>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgbody"></div></dialog>
+
+<script id="data" type="application/json">{"levels":[{"id":1,"theme":"T14","tier":"入门","tierCalc":"普通","layer":"① 基础对账","w":5,"h":5,"types":[{"key":"A","kind":"E0"}],"mech":[],"g1":false,"newMech":null,"tutorial":"budget","rows":[".....","#..#.",".#...",".#..#","..#.."],"kStar":4,"answer":[{"cell":4,"coord":"E1","type":"A"},{"cell":7,"coord":"C2","type":"A"},{"cell":20,"coord":"A5","type":"A"},{"cell":23,"coord":"D5","type":"A"}],"metrics":{"placements":4,"opening":"T1","count":{"T1":2,"T2":0,"D":1,"T3":0,"B":1,"R":0,"M":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":7,"focusStep":3,"playerPath":[{"tier":"B","n":2}],"required":[3],"intuition":{"strong":0,"ties":0,"hardTrap":0,"trapCost":0,"traps":[{"wrong":"B1","right":"E1","target":"B2","gainWrong":6,"gainRight":7,"mirror":false,"strong":false,"tie":false,"undo":2}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":21,"target":"B5","p":[20],"place":["A5"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":24,"target":"E5","p":[23],"place":["D5"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"B","why":["预算对账：剩 2 台，正好对应 2 个互不相干的缺口"],"t":17,"target":"C4","p":[7],"place":["C2"],"groups":[{"t":6,"d":1,"cells":[1,6,7]},{"t":9,"d":1,"cells":[4,9,14]}],"rooms":null,"room":null,"mode":null,"required":true},{"tier":"D","why":["路口推理：7 个位置里它照到的最多且包含其余"],"t":4,"target":"E1","p":[4],"place":["E1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]},{"id":2,"theme":"T14","tier":"挑战","tierCalc":"普通","layer":"② 交点对账","w":6,"h":6,"types":[{"key":"A","kind":"E0"}],"mech":["R1"],"g1":false,"newMech":null,"tutorial":null,"rows":["..#...",".#.#..",".#....","#../#.","......",".#...."],"kStar":5,"answer":[{"cell":0,"coord":"A1","type":"A"},{"cell":4,"coord":"E1","type":"A"},{"cell":20,"coord":"C4","type":"A"},{"cell":24,"coord":"A5","type":"A"},{"cell":35,"coord":"F6","type":"A"}],"metrics":{"placements":5,"opening":"T1","count":{"T1":2,"T2":0,"D":1,"T3":0,"B":2,"R":0,"M":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":10,"focusStep":3,"playerPath":[{"tier":"B","n":3}],"required":[3],"intuition":{"strong":0,"ties":0,"hardTrap":0,"trapCost":0,"traps":[{"wrong":"F1","right":"F6","target":"D1","gainWrong":7,"gainRight":8,"mirror":false,"strong":false,"tie":false,"undo":3}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":1,"target":"B1","p":[0],"place":["A1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":30,"target":"A6","p":[24],"place":["A5"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"B","why":["预算对账：剩 3 台，正好对应 3 个互不相干的缺口"],"t":10,"target":"E2","p":[4],"place":["E1"],"groups":[{"t":3,"d":1,"cells":[3,4,5]},{"t":19,"d":1,"cells":[15,19,20,25]},{"t":33,"d":1,"cells":[27,32,33,34,35]}],"rooms":null,"room":null,"mode":null,"required":true},{"tier":"B","why":["预算对账：剩 2 台，正好对应 2 个互不相干的缺口"],"t":23,"target":"F4","p":[35],"place":["F6"],"groups":[{"t":19,"d":1,"cells":[15,19,20,25]},{"t":33,"d":1,"cells":[27,32,33,34,35]}],"rooms":null,"room":null,"mode":null,"required":false},{"tier":"D","why":["路口推理：8 个位置里它照到的最多且包含其余"],"t":14,"target":"C3","p":[20],"place":["C4"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]},{"id":3,"theme":"T11","tier":"挑战","tierCalc":"普通","layer":"③ 双照对账","w":6,"h":6,"types":[{"key":"A","kind":"E0"}],"mech":["C2"],"g1":false,"newMech":null,"tutorial":null,"rows":["......","#.##..","..#...","......",".D#.#.","#..#.."],"kStar":5,"answer":[{"cell":4,"coord":"E1","type":"A"},{"cell":21,"coord":"D4","type":"A"},{"cell":24,"coord":"A5","type":"A"},{"cell":31,"coord":"B6","type":"A"},{"cell":35,"coord":"F6","type":"A"}],"metrics":{"placements":5,"opening":"T1","count":{"T1":2,"T2":0,"D":2,"T3":0,"B":1,"R":0,"M":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":9,"focusStep":3,"playerPath":[{"tier":"B","n":3}],"required":[3],"intuition":{"strong":0,"ties":1,"hardTrap":0,"trapCost":0,"traps":[{"wrong":"A4","right":"D4","target":"A5","gainWrong":6,"gainRight":6,"mirror":false,"strong":false,"tie":true,"undo":3}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":32,"target":"C6","p":[31],"place":["B6"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":34,"target":"E6","p":[35],"place":["F6"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"B","why":["预算对账：剩 3 台，正好对应 3 个互不相干的缺口"],"t":25,"target":"B5","p":[24],"place":["A5"],"groups":[{"t":24,"d":1,"cells":[12,18,24]},{"t":27,"d":1,"cells":[15,21,27]},{"t":10,"d":1,"cells":[4,10,11,16,22]}],"rooms":null,"room":null,"mode":null,"required":true},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"t":0,"target":"A1","p":[4],"place":["E1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"D","why":["路口推理：8 个位置里它照到的最多且包含其余"],"t":21,"target":"D4","p":[21],"place":["D4"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]},{"id":4,"theme":"T11","tier":"难题","tierCalc":"难题","layer":"⑤ 缺一台对账","w":6,"h":6,"types":[{"key":"A","kind":"E0"}],"mech":[],"g1":false,"newMech":null,"tutorial":null,"rows":["..#...",".#..#.",".#.#.#","#.#...","...#..","#....#"],"kStar":6,"answer":[{"cell":0,"coord":"A1","type":"A"},{"cell":5,"coord":"F1","type":"A"},{"cell":8,"coord":"C2","type":"A"},{"cell":23,"coord":"F4","type":"A"},{"cell":25,"coord":"B5","type":"A"},{"cell":34,"coord":"E6","type":"A"}],"metrics":{"placements":6,"opening":"T1","count":{"T1":3,"T2":0,"D":2,"T3":0,"B":0,"R":0,"M":1,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":11,"focusStep":4,"playerPath":[{"tier":"M","n":4},{"tier":"D","n":0}],"required":[4,5],"intuition":{"strong":1,"ties":1,"hardTrap":1,"trapCost":2,"traps":[{"wrong":"B6","right":"B5","target":"B4","gainWrong":6,"gainRight":5,"mirror":false,"strong":true,"tie":false,"undo":2},{"wrong":"E4","right":"E6","target":"D4","gainWrong":6,"gainRight":6,"mirror":false,"strong":false,"tie":true,"undo":1}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":1,"target":"B1","p":[0],"place":["A1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":11,"target":"F2","p":[5],"place":["F1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":14,"target":"C3","p":[8],"place":["C2"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"M","why":["缺一台对账：剩 3 台，却有 4 格要照"],"t":21,"target":"D4","p":[23],"place":["F4"],"groups":[{"t":21,"d":1,"cells":[21,22,23]},{"t":24,"d":1,"cells":[24,25,26]},{"t":29,"d":1,"cells":[23,28,29]},{"t":33,"d":1,"cells":[31,32,33,34]}],"rooms":null,"room":null,"mode":null,"required":true},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"t":28,"target":"E5","p":[34],"place":["E6"],"groups":null,"rooms":null,"room":null,"mode":null,"required":true},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"t":25,"target":"B5","p":[25],"place":["B5"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]},{"id":5,"theme":"T10","tier":"挑战","tierCalc":"难题","layer":"⑥ 区域对账","w":7,"h":7,"types":[{"key":"A","kind":"E0"}],"mech":[],"g1":false,"newMech":null,"tutorial":null,"rows":["...#..#","#..##..","..##...","...#.#.","#..#...",".#.#..#","...#.##"],"kStar":7,"answer":[{"cell":2,"coord":"C1","type":"A"},{"cell":5,"coord":"F1","type":"A"},{"cell":15,"coord":"B3","type":"A"},{"cell":23,"coord":"C4","type":"A"},{"cell":34,"coord":"G5","type":"A"},{"cell":39,"coord":"E6","type":"A"},{"cell":42,"coord":"A7","type":"A"}],"metrics":{"placements":7,"opening":"T1","count":{"T1":2,"T2":0,"D":2,"T3":0,"B":1,"R":2,"M":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":15,"focusStep":3,"playerPath":[{"tier":"R","n":0,"focus":true}],"required":[3],"intuition":{"strong":1,"ties":0,"hardTrap":1,"trapCost":4,"traps":[{"wrong":"B1","right":"B3","target":"A1","gainWrong":7,"gainRight":6,"mirror":false,"strong":true,"tie":false,"undo":4}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":4,"target":"E1","p":[5],"place":["F1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":35,"target":"A6","p":[42],"place":["A7"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"R","why":["区域对账：各区域最少台数之和 = 剩余 5 台"],"t":9,"target":"C2","p":[2],"place":["C1"],"groups":[{"t":0,"d":1,"room":0,"cells":[0,1,2]},{"t":14,"d":1,"room":0,"cells":[14,15,21]},{"t":37,"d":1,"room":0,"cells":[23,30,37,44]},{"t":40,"d":1,"room":1,"cells":[33,39,40]},{"t":27,"d":1,"room":1,"cells":[13,20,27,34]}],"rooms":[{"lb":3,"hard":[0,14,37],"cells":[0,1,2,8,9,14,15,21,22,23,29,30,35,37,42,43,44]},{"lb":2,"hard":[40,27],"cells":[4,5,12,13,18,19,20,25,27,32,33,34,39,40,46]}],"room":0,"mode":"excl","required":true},{"tier":"R","why":["区域对账：各区域最少台数之和 = 剩余 4 台"],"t":8,"target":"B2","p":[15],"place":["B3"],"groups":[{"t":14,"d":1,"room":0,"cells":[14,15,21]},{"t":37,"d":1,"room":0,"cells":[23,30,37,44]},{"t":40,"d":1,"room":1,"cells":[33,39,40]},{"t":27,"d":1,"room":1,"cells":[13,20,27,34]}],"rooms":[{"lb":2,"hard":[14,37],"cells":[0,1,2,8,9,14,15,21,22,23,29,30,35,37,42,43,44]},{"lb":2,"hard":[40,27],"cells":[4,5,12,13,18,19,20,25,27,32,33,34,39,40,46]}],"room":0,"mode":"excl","required":false},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"t":23,"target":"C4","p":[23],"place":["C4"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"B","why":["预算对账：剩 2 台，正好对应 2 个互不相干的缺口"],"t":25,"target":"E4","p":[39],"place":["E6"],"groups":[{"t":40,"d":1,"cells":[33,39,40]},{"t":27,"d":1,"cells":[13,20,27,34]}],"rooms":null,"room":null,"mode":null,"required":false},{"tier":"D","why":["路口推理：6 个位置里它照到的最多且包含其余"],"t":20,"target":"G3","p":[34],"place":["G5"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]},{"id":6,"theme":"T10","tier":"难题","tierCalc":"难题","layer":"⑥ 区域对账 + 综合","w":8,"h":8,"types":[{"key":"A","kind":"E0"}],"mech":["C1"],"g1":false,"newMech":null,"tutorial":null,"rows":["....#...","..#.#.#.","#...#..#","....#...","..#.#.#.",".#..#...","..#.#..#","..P###.."],"kStar":9,"answer":[{"cell":0,"coord":"A1","type":"A"},{"cell":7,"coord":"H1","type":"A"},{"cell":17,"coord":"B3","type":"A"},{"cell":21,"coord":"F3","type":"A"},{"cell":24,"coord":"A4","type":"A"},{"cell":31,"coord":"H4","type":"A"},{"cell":43,"coord":"D6","type":"A"},{"cell":49,"coord":"B7","type":"A"},{"cell":62,"coord":"G8","type":"A"}],"metrics":{"placements":9,"opening":"T1","count":{"T1":3,"T2":0,"D":2,"T3":1,"B":1,"R":2,"M":0,"T4":0,"T5":0,"G":0},"guesses":0,"worstTrial":0,"overlap":0,"early":true,"diff":18,"focusStep":5,"playerPath":[{"tier":"R","n":0,"focus":true}],"required":[5],"intuition":{"strong":1,"ties":1,"hardTrap":1,"trapCost":3,"traps":[{"wrong":"B2","right":"F3","target":"A2","gainWrong":6,"gainRight":7,"mirror":false,"strong":false,"tie":false,"undo":4},{"wrong":"B2","right":"H4","target":"A2","gainWrong":6,"gainRight":4,"mirror":false,"strong":true,"tie":false,"undo":3},{"wrong":"B2","right":"B3","target":"A2","gainWrong":6,"gainRight":6,"mirror":false,"strong":false,"tie":true,"undo":2}]}},"steps":[{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":15,"target":"H2","p":[7],"place":["H1"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":42,"target":"C6","p":[43],"place":["D6"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T1","why":["明显死角：只有 2 个位置能照到，外侧那格照得更多"],"t":63,"target":"H8","p":[62],"place":["G8"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"T3","why":["C1排除"],"t":57,"target":"B8","p":[49],"place":["B7"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"R","why":["区域对账：各区域最少台数之和 = 剩余 5 台"],"t":2,"target":"C1","p":[0],"place":["A1"],"groups":[{"t":8,"d":1,"room":0,"cells":[0,8,9]},{"t":18,"d":1,"room":0,"cells":[17,18,19,26]},{"t":40,"d":1,"room":0,"cells":[24,32,40,48]},{"t":22,"d":1,"room":1,"cells":[21,22,30]},{"t":39,"d":1,"room":1,"cells":[31,39,47]}],"rooms":[{"lb":3,"hard":[8,18,40],"cells":[0,1,2,3,8,9,11,17,18,19,24,25,26,27,32,33,35,40,42,43,48,49,51,56,57,58]},{"lb":2,"hard":[22,39],"cells":[5,6,7,13,15,21,22,29,30,31,37,39,45,46,47,53,54,62,63]}],"room":0,"mode":"excl","required":true},{"tier":"R","why":["区域对账：各区域最少台数之和 = 剩余 4 台"],"t":9,"target":"B2","p":[17],"place":["B3"],"groups":[{"t":18,"d":1,"room":0,"cells":[17,18,19,26]},{"t":40,"d":1,"room":0,"cells":[24,32,40,48]},{"t":22,"d":1,"room":1,"cells":[21,22,30]},{"t":39,"d":1,"room":1,"cells":[31,39,47]}],"rooms":[{"lb":2,"hard":[18,40],"cells":[0,1,2,3,8,9,11,17,18,19,24,25,26,27,32,33,35,40,42,43,48,49,51,56,57,58]},{"lb":2,"hard":[22,39],"cells":[5,6,7,13,15,21,22,29,30,31,37,39,45,46,47,53,54,62,63]}],"room":0,"mode":"excl","required":false},{"tier":"D","why":["路口推理：7 个位置里它照到的最多且包含其余"],"t":24,"target":"A4","p":[24],"place":["A4"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false},{"tier":"B","why":["预算对账：剩 2 台，正好对应 2 个互不相干的缺口"],"t":13,"target":"F2","p":[21],"place":["F3"],"groups":[{"t":22,"d":1,"cells":[21,22,30]},{"t":39,"d":1,"cells":[31,39,47]}],"rooms":null,"room":null,"mode":null,"required":false},{"tier":"D","why":["路口推理：5 个位置里它照到的最多且包含其余"],"t":31,"target":"H4","p":[31],"place":["H4"],"groups":null,"rooms":null,"room":null,"mode":null,"required":false}]}],"themes":{"T14":{"key":"warehouse","name":"仓库盘点","device":"读标站","unit":"台","beam":"扫描线","target":"货位","verb":"扫描到","block":"货架隔板","C1":"易碎品区（不能被扫描光照到）","C2":"双站复核货位（要两台不同设备扫描）","C3":"叉车通道（不能放设备，但要扫描）","R1":"扫码反射镜（扫描线碰到会转 90°）","finish":"全部货位盘点完成"},"T11":{"key":"stage","name":"舞台布光","device":"灯箱","unit":"台","beam":"光线","target":"舞台","verb":"照亮","block":"布景墙","C1":"暗场换景区（必须保持黑暗）","C2":"双灯表演位（要两台不同灯照到）","R1":"固定反光板","finish":"舞台全亮，演出开始"},"T10":{"key":"space","name":"太空站照明","device":"应急灯柱","unit":"台","beam":"灯光","target":"舱室地板","verb":"照亮","block":"舱壁","C1":"观测窗（必须避光）","C2":"双灯保障区（要两台不同灯照到）","C3":"疏散通道（不能放灯，但要照亮）","R1":"光学镜","finish":"空间站恢复照明"}},"skins":{"warehouse":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"21\" ry=\"5\" fill=\"#c1b7a3\" opacity=\".45\"/\u003e\n \u003crect x=\"21\" y=\"51\" width=\"22\" height=\"9\" rx=\"2\" fill=\"#7d8f56\" stroke=\"#546536\" stroke-width=\"1.5\"/\u003e\n \u003crect x=\"26\" y=\"20\" width=\"12\" height=\"31\" rx=\"2\" fill=\"#e7ddc5\" stroke=\"#a9956f\" stroke-width=\"1.5\"/\u003e\n \u003crect x=\"20\" y=\"10\" width=\"24\" height=\"13\" rx=\"3\" fill=\"#9bb06a\" stroke=\"#5f7840\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"24\" y=\"13\" width=\"16\" height=\"6\" rx=\"1.5\" fill=\"#1f3327\"/\u003e\n \u003cpath d=\"M26 16h12\" stroke=\"#8ee08a\" stroke-width=\"2\" stroke-linecap=\"round\"/\u003e\n \u003cg stroke=\"#6f9450\" stroke-width=\"1.8\" stroke-linecap=\"round\"\u003e\u003cpath d=\"M14 27v6M50 27v6M32 41h0\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"46\" r=\"2.6\" fill=\"#5f8c43\"/\u003e\n\u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#bcae95\" opacity=\".45\"/\u003e\n \u003crect x=\"7\" y=\"8\" width=\"50\" height=\"52\" rx=\"2\" fill=\"#d8c5a3\" stroke=\"#a58f6c\" stroke-width=\"1.6\"/\u003e\n \u003cpath d=\"M7 24h50M7 41h50\" stroke=\"#9a815d\" stroke-width=\"3\"/\u003e\n \u003crect x=\"11\" y=\"11\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"11\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003crect x=\"11\" y=\"27\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"27\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003crect x=\"11\" y=\"44\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\u003crect x=\"35\" y=\"44\" width=\"18\" height=\"11\" rx=\"1.5\" fill=\"#e8d6b4\" stroke=\"#b39b74\"/\u003e\n \u003cpath d=\"M20 11v11M44 11v11M20 27v11M44 27v11M20 44v11M44 44v11\" stroke=\"#c3ab84\" stroke-width=\"1.2\"/\u003e\n\u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\u003cg class=\"dry-detail\"\u003e\u003cg fill=\"none\" stroke=\"#c3b393\" stroke-width=\"1.3\" opacity=\".85\"\u003e\u003crect x=\"10\" y=\"10\" width=\"44\" height=\"44\" rx=\"2\"/\u003e\u003cpath d=\"M32 10v44M10 32h44\"/\u003e\u003cpath d=\"M10 21h44M10 43h44\" stroke-dasharray=\"3 3\"/\u003e\u003c/g\u003e\u003cg fill=\"#bda882\" opacity=\".6\"\u003e\u003ccircle cx=\"20\" cy=\"20\" r=\"1.5\"/\u003e\u003ccircle cx=\"44\" cy=\"44\" r=\"1.5\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003cg class=\"wet-detail\"\u003e\u003cg fill=\"none\" stroke=\"#5f9448\" stroke-width=\"1.8\" stroke-linecap=\"round\"\u003e\u003cpath d=\"M8 18h48M8 32h48M8 46h48\"/\u003e\u003cpath d=\"m18 52 5 5 10-11\" stroke=\"#3f7a35\" stroke-width=\"2.6\"/\u003e\u003c/g\u003e\u003crect x=\"9\" y=\"9\" width=\"46\" height=\"46\" rx=\"3\" fill=\"none\" stroke=\"#8cc274\" stroke-width=\"1.4\"/\u003e\u003c/g\u003e\u003c/svg\u003e"},"stage":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"60\" rx=\"22\" ry=\"5\" fill=\"#b8a5ce\" opacity=\".22\"/\u003e\u003cpath d=\"M20 60h24l-3 4H23Z\" fill=\"#d8c8a2\" stroke=\"#b69b5e\"/\u003e\n \u003cg stroke=\"#ad9255\" stroke-width=\"1.4\" stroke-linejoin=\"round\"\u003e\u003cpath d=\"M22 22 19 8h26l-3 14Z\" fill=\"#eee0b8\"/\u003e\u003cpath d=\"m22 48-3 13h26l-3-13Z\" fill=\"#e0cc97\"/\u003e\u003cpath d=\"m19 25-13-3v26l13-3Z\" fill=\"#e9d8ad\"/\u003e\u003cpath d=\"m45 25 13-3v26l-13-3Z\" fill=\"#f4e9c9\"/\u003e\n \u003crect x=\"19\" y=\"22\" width=\"26\" height=\"26\" rx=\"5\" fill=\"#fffaf0\"/\u003e\u003crect x=\"23\" y=\"26\" width=\"18\" height=\"18\" rx=\"3\" fill=\"#fff1b7\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"35\" r=\"6\" fill=\"#fffef4\" stroke=\"#d2b462\"/\u003e\u003cpath d=\"M26 16h12M26 54h12M11 29v12M53 29v12\" fill=\"none\" stroke=\"#fff9e9\" stroke-width=\"1.5\"/\u003e\n \u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"27\" ry=\"4\" fill=\"#cfc4de\"/\u003e\u003cpath d=\"M8 14h45l4 6v39l-6 4H8Z\" fill=\"#ddd4ec\" stroke=\"#b3a5c8\" stroke-width=\"1.4\"/\u003e\u003cpath d=\"M8 14h45l4 6H12Z\" fill=\"#f5f1fc\"/\u003e\u003cpath d=\"M51 21h6v38l-6 4Z\" fill=\"#c7badb\"/\u003e\n \u003cpath d=\"M12 23h34v31H12Z\" fill=\"#ede7f7\" stroke=\"#c3b4d6\"/\u003e\u003cpath d=\"M18 23v31m8-31v31m9-31v31m8-31v31\" stroke=\"#d7c9e6\" stroke-width=\"2\"/\u003e\u003cpath d=\"M12 56h35\" stroke=\"#d3b775\" stroke-width=\"2\"/\u003e\n \u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\n \u003cg class=\"dry-detail\" fill=\"none\" stroke=\"#c9bcdd\" stroke-width=\"1.2\"\u003e\u003cpath d=\"M7 15h50M7 49h50M15 7v50m34-50v50\" opacity=\".65\"/\u003e\u003cpath d=\"m32 23 9 9-9 9-9-9Z\"/\u003e\u003ccircle cx=\"32\" cy=\"32\" r=\"2\" fill=\"#d4c8e3\"/\u003e\u003c/g\u003e\n \u003cg class=\"wet-detail\" fill=\"none\" stroke=\"#d9bc6f\" stroke-width=\"1.2\"\u003e\u003cpath d=\"M8 50h48M15 54h34M32 15v22M21 26h22m-18-7 14 14m-14 0 14-14\"/\u003e\u003ccircle cx=\"32\" cy=\"26\" r=\"10\" fill=\"#fff4cf\" stroke=\"#e8d5a0\"/\u003e\u003cpath d=\"m32 18 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z\" fill=\"#fffdf1\"/\u003e\u003cpath d=\"M10 12v8m-4-4h8m36 19v8m-4-4h8\" stroke=\"#d6c4e7\"/\u003e\u003c/g\u003e\n \u003c/svg\u003e"},"space":{"emitter":"\u003csvg class=\"emitter\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"61\" rx=\"20\" ry=\"5\" fill=\"#aebac0\" opacity=\".45\"/\u003e\n \u003crect x=\"22\" y=\"53\" width=\"20\" height=\"7\" rx=\"2\" fill=\"#8fa3ad\" stroke=\"#5d747e\" stroke-width=\"1.4\"/\u003e\n \u003crect x=\"28\" y=\"27\" width=\"8\" height=\"27\" rx=\"2\" fill=\"#c7d8de\" stroke=\"#7794a0\" stroke-width=\"1.4\"/\u003e\n \u003cpath d=\"M20 12h24l-4 15H24Z\" fill=\"#e8f6f7\" stroke=\"#7fa9b5\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"23\" y=\"20\" width=\"18\" height=\"6\" rx=\"2\" fill=\"#bdeaf0\"/\u003e\n \u003cg stroke=\"#8fd4e2\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".9\"\u003e\u003cpath d=\"M32 4v5M14 18h6M44 18h6M18 8l4 4M46 8l-4 4\"/\u003e\u003c/g\u003e\n \u003ccircle cx=\"32\" cy=\"52\" r=\"2.4\" fill=\"#4fb4c4\"/\u003e\n\u003c/svg\u003e","obstacle":"\u003csvg class=\"obstacle\" viewBox=\"0 0 64 70\" aria-hidden=\"true\"\u003e\n \u003cellipse cx=\"32\" cy=\"63\" rx=\"27\" ry=\"4\" fill=\"#aeb9be\" opacity=\".45\"/\u003e\n \u003crect x=\"6\" y=\"9\" width=\"52\" height=\"51\" rx=\"4\" fill=\"#d6dfe3\" stroke=\"#9baeb6\" stroke-width=\"1.6\"/\u003e\n \u003crect x=\"10\" y=\"13\" width=\"44\" height=\"43\" rx=\"2\" fill=\"#c2ced4\"/\u003e\n \u003cpath d=\"M10 27h44M10 42h44M32 13v43\" stroke=\"#a5b6bd\" stroke-width=\"1.5\"/\u003e\n \u003cg fill=\"#8fa3ab\"\u003e\u003ccircle cx=\"13\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"51\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"13\" cy=\"53\" r=\"1.6\"/\u003e\u003ccircle cx=\"51\" cy=\"53\" r=\"1.6\"/\u003e\u003ccircle cx=\"29\" cy=\"16\" r=\"1.6\"/\u003e\u003ccircle cx=\"35\" cy=\"53\" r=\"1.6\"/\u003e\u003c/g\u003e\n \u003crect x=\"15\" y=\"31\" width=\"12\" height=\"7\" rx=\"1.5\" fill=\"#e7f1f3\" stroke=\"#9fb4bc\"/\u003e\n\u003c/svg\u003e","terrain":"\u003csvg class=\"terrain\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"\u003e\u003cg class=\"dry-detail\"\u003e\u003cg fill=\"none\" stroke=\"#aebfc6\" stroke-width=\"1.2\" opacity=\".8\"\u003e\u003cpath d=\"M8 8h48v48H8ZM8 24h48M8 40h48M24 8v48M40 8v48\"/\u003e\u003cpath d=\"M8 8 56 56M56 8 8 56\" opacity=\".35\"/\u003e\u003c/g\u003e\u003cg fill=\"#9fb2ba\" opacity=\".6\"\u003e\u003ccircle cx=\"16\" cy=\"16\" r=\"1.4\"/\u003e\u003ccircle cx=\"48\" cy=\"48\" r=\"1.4\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003cg class=\"wet-detail\"\u003e\u003cg fill=\"none\" stroke=\"#7ec9d6\" stroke-width=\"1.7\"\u003e\u003crect x=\"9\" y=\"9\" width=\"46\" height=\"46\" rx=\"3\"/\u003e\u003cpath d=\"M20 32h24M32 20v24\"/\u003e\u003c/g\u003e\u003ccircle cx=\"32\" cy=\"32\" r=\"10\" fill=\"#dff5f7\" stroke=\"#79bfcd\" stroke-width=\"1.6\"/\u003e\u003cg fill=\"#a6e2ea\"\u003e\u003ccircle cx=\"14\" cy=\"14\" r=\"2\"/\u003e\u003ccircle cx=\"50\" cy=\"50\" r=\"2\"/\u003e\u003ccircle cx=\"50\" cy=\"14\" r=\"1.6\"/\u003e\u003ccircle cx=\"14\" cy=\"50\" r=\"1.6\"/\u003e\u003c/g\u003e\u003c/g\u003e\u003c/svg\u003e"}}}</script>
+<script>
+'use strict';
+const DATA=JSON.parse(document.getElementById('data').textContent);
+const LV=DATA.levels,TH=DATA.themes,SK=DATA.skins;
+const $=id=>document.getElementById(id);
+const COL=['#2b7fa8','#c0602e','#6a4fa3','#2e8a5f','#b8396b','#7a6a1f'];
+const TIERCLS={入门:'t0',普通:'t1',挑战:'t2',难题:'t3'};
+const STEPNAME={T1:['明显死角','easy'],T2:['隐蔽死角','easy'],D:['路口推理','mid'],T3:['机制排除','mid'],B:['预算对账','deep'],M:['缺一台对账','deep'],R:['区域对账','deep'],T4:['最后一台','mid'],T5:['一步反证','deep'],G:['尝试','guess']};
+const LC=s=>String(s).replace(/([A-F])(\d)/g,'$1列$2行');
+const coordOf=(i,W)=>String.fromCharCode(65+i%W)+'列'+(Math.floor(i/W)+1)+'行';
+const short=s=>(s||'').split('（')[0];
+
+/* ───────── 配置（后台可调） ───────── */
+const CFG={undo:5,newBonus:2,max:50,cost:10,regenSec:180,refund:10,freeLevels:6,showTier:true};
+let stamina=CFG.max,regenAt=null;
+const SAVE='fiu-budget-v1';
+function save(){try{localStorage.setItem(SAVE,JSON.stringify({cfg:CFG,stamina,regenAt,cleared,records,tutDone}));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE)||'null');if(!d)return;Object.assign(CFG,d.cfg||{});stamina=d.stamina??CFG.max;regenAt=d.regenAt||null;Object.assign(cleared,d.cleared||{});(d.records||[]).forEach(r=>records.push(r));Object.assign(tutDone,d.tutDone||{});}catch(e){}}
+
+/* ───────── 规则引擎 ───────── */
+function prep(raw){
+  const W=raw.w,H=raw.h,cells=raw.rows.join('').split('');
+  const range=raw.types[0].kind==='E2'?raw.types[0].range:null;
+  const targets=[],need={};
+  cells.forEach((x,i)=>{if(x==='.'||x==='N'||x==='D'){targets.push(i);need[i]=x==='D'?2:1;}});
+  const L={raw,W,H,cells,range,targets,need,g1:!!raw.g1,cache:{}};
+  return L;
+}
+function trace(L,s){
+  if(L.cache[s])return L.cache[s];
+  const {W,H,cells}=L,hits=new Set([s]),rays=[];
+  for(const [dr0,dc0] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    let r=Math.floor(s/W),c=s%W,dr=dr0,dc=dc0,k=0,end='boundary';const seen=new Set(),path=[];
+    while(true){
+      const a=r+dr,b=c+dc;
+      if(a<0||a>=H||b<0||b>=W){end='boundary';break;}
+      const j=a*W+b,x=cells[j];
+      if(x==='#'){end='wall';break;}
+      if(L.range!==null&&k>=L.range){end='range';break;}
+      const st=j*16+(dr+1)*4+(dc+1);if(seen.has(st)){end='loop';break;}
+      seen.add(st);path.push(j);hits.add(j);k++;
+      if(x==='/')[dr,dc]=[-dc,-dr];else if(x==='\\')[dr,dc]=[dc,dr];
+      r=a;c=b;
+    }
+    rays.push({path,end,dir:[dr,dc]});
+  }
+  return L.cache[s]={hits,rays};
+}
+function evalBoard(L,placed){
+  const src={};L.targets.forEach(t=>src[t]=new Set());
+  const viol=new Set(),wet=new Set();
+  placed.forEach(p=>{const tr=trace(L,p);tr.hits.forEach(h=>{wet.add(h);if(src[h])src[h].add(p);if(L.cells[h]==='P')viol.add(h);});});
+  const pairs=[];
+  if(L.g1)for(const a of placed)for(const b of placed)if(a!==b&&trace(L,a).hits.has(b))pairs.push([a,b]);
+  let covered=0;L.targets.forEach(t=>{if(src[t].size>=L.need[t])covered++;});
+  const doubles=L.targets.filter(t=>L.need[t]===2).map(t=>({t,n:src[t].size}));
+  const won=covered===L.targets.length&&!viol.size&&!pairs.length;
+  return {src,viol,pairs,covered,total:L.targets.length,doubles,won,wet};
+}
+
+/* ───────── 体力 ───────── */
+function tickStamina(){
+  const now=Date.now();
+  if(stamina>=CFG.max){stamina=Math.min(stamina,CFG.max);regenAt=null;}
+  else{if(!regenAt)regenAt=now+CFG.regenSec*1000;while(regenAt&&now>=regenAt&&stamina<CFG.max){stamina++;regenAt=stamina<CFG.max?regenAt+CFG.regenSec*1000:null;}}
+  $('st').textContent=stamina;$('stmax').textContent='/'+CFG.max;
+  if(regenAt){const s=Math.max(0,Math.ceil((regenAt-now)/1000));$('regen').textContent='+1 '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}else $('regen').textContent='满';
+}
+setInterval(tickStamina,1000);
+const isFree=i=>i<CFG.freeLevels;
+
+/* ───────── 状态 ───────── */
+let cur=null;            // 当前局
+const cleared={},records=[],tutDone={};
+const undoOf=i=>CFG.undo+(LV[i].newMech?CFG.newBonus:0);
+function newAttempt(i){
+  const raw=LV[i],L=prep(raw);
+  return {i,L,placed:[],hist:[],undoLeft:undoOf(i),undoUsed:0,places:0,hints:0,hintStage:0,t0:Date.now(),status:'play',rated:null,pv:null,tut:null,cand:null};
+}
+function startLevel(i,isRestart){
+  if(!isFree(i)){
+    tickStamina();
+    if(stamina<CFG.cost){openNoStamina(i);return;}
+    if(stamina>=CFG.max)regenAt=null;
+    stamina-=CFG.cost;tickStamina();save();
+  }
+  cur=newAttempt(i);
+  $('menu').classList.add('hidden');$('game').classList.remove('hidden');
+  setupLevel();
+  const raw=LV[i];
+  if(raw.tutorial&&!isRestart&&!tutDone[raw.id])startTutorial(raw.tutorial);
+  else if(!isRestart&&!raw.tutorial)focusCard(raw);
+}
+/* 专题：每关开局介绍本关重点推理（只讲概念，不剧透位置） */
+const FOCUS={
+  '② 交点对账':['对账可以有 3 组甚至更多','先把死角处理完，再数“剩几台、有几个互不相干的难照格”。本关的组数更多，而且有的照亮位置要经过<b>镜子拐弯</b>才算进来——数照亮位置时，别漏掉镜子拐过来的那条光。'],
+  '③ 双照对账':['双照格的“欠账”也要算','双照格要两台<b>不同</b>设备照到。已经照到 1 次的双照格，还差的那 1 台同样是一笔账：它的照亮位置也必须落在对账的组里。'],
+  '⑤ 缺一台对账':['剩 k 台，却有 k+1 格要照','如果剩下的设备比“互不相干的难照格”少一台，就不能一组一台了。这时看：这些格子里，<b>有没有唯一一个位置能同时照到其中两格</b>？不放它，每台最多照一格，台数不够——所以它必放。'],
+  '⑥ 区域对账':['墙把棋盘分成几个区域','墙连成一整条时，两边的光互不相通。<b>先分别算每个区域最少要几台</b>（区内互不相干的难照格有几个），加起来如果正好等于剩余台数，每个区域就只能放这么多台，一台都不能多。'],
+  '⑥ 区域对账 + 综合':['区域对账 + 机制排除','和上一关一样先分区域算账；本关还有<b>禁覆盖格</b>，会先排除一批位置。账对上之后，再用路口推理收尾。'],
+};
+function focusCard(raw){
+  const f=FOCUS[raw.layer];if(!f)return;
+  openDlg('<h2>本关重点：'+raw.layer+'</h2><div class="mechcard"><b>'+f[0]+'</b><br>'+f[1]+'</div><p class="tip">开局仍然先找死角格；卡住时再想想“账”能不能对上。第二次提示会画出分组。</p><div class="row"><button class="pri" id="mcok">开始</button></div>');
+  $('mcok').onclick=closeDlg;
+}
+function mechInfo(m){
+  const T=themeOf(),L=cur.L;
+  return {
+    C1:['C1',short(T.C1)||'禁覆盖格','不能被任何光照到；光会穿过它。<b>推理用法</b>：照到它的那条线上都不能放设备，候选会被成片排除。'],
+    C2:['C2',short(T.C2)||'双照格','要两台<b>不同</b>设备照到（同一台的多条光只算 1 台），自己不能放设备。<b>推理用法</b>：能照到它的位置只剩两个时，两个都要放。'],
+    C3:['C3',short(T.C3)||'不可放置格','不能放设备，但它本身要被照到。<b>推理用法</b>：它不能“自己照自己”，常常变成死角。'],
+    R1:['R1',short(T.R1)||'反射格','光碰到会转 90°，不能放设备。<b>推理用法</b>：镜子背后的格子只能靠反射光照到，是隐蔽死角。'],
+    G1:['G1','不得互照','任何设备都不能出现在另一台的光里。<b>推理用法</b>：每放一台，它照到的整条十字都不能再放。'],
+    E2:['E2','短射程','每台每个方向只照 '+L.range+' 格，线头短横线是射程终点。<b>推理用法</b>：照不远，远处的格子会变成新的死角。'],
+  }[m];
+}
+function newMechCard(m){
+  const x=mechInfo(m);if(!x)return;
+  openDlg('<h2>新机制：'+x[0]+' '+x[1]+'</h2><div class="mechcard">'+x[2]+'</div><p class="tip">新机制关撤回次数 +'+CFG.newBonus+'（本关 '+cur.undoLeft+' 次）。</p><div class="row"><button class="pri" id="mcok">开始</button></div>');
+  $('mcok').onclick=closeDlg;
+}
+
+/* ───────── 渲染 ───────── */
+function themeOf(){return TH[cur.L.raw.theme];}
+function setupLevel(){
+  const L=cur.L,raw=L.raw,T=themeOf();
+  $('app').dataset.theme=T.key;
+  $('lvtitle').textContent='第 '+raw.id+' 关 · '+T.name;
+  $('lvtier').textContent=raw.tier;$('lvtier').className='tier '+TIERCLS[raw.tier];$('lvtier').classList.toggle('hidden',!CFG.showTier);
+  $('lvgoal').innerHTML='<span class="focustag">本关重点 '+raw.layer+'</span>用 <b>'+raw.kStar+'</b> '+T.unit+(L.range?'短射程':'')+T.device+'，'+T.verb+'全部'+T.target+'（共 '+L.targets.length+' 格）。'+(isFree(cur.i)?'<span style="color:var(--ok)">本关免体力。</span>':'');
+  const M={
+    C1:['C1',short(T.C1)||'禁覆盖格','不能被照到，但光会穿过它'],
+    C2:['C2',short(T.C2)||'双照格','要两台不同设备照到'],
+    C3:['C3',short(T.C3)||'不可放置格','不能放设备，但要被照到'],
+    R1:['R1',short(T.R1)||'反射格','光碰到会转 90°'],
+    G1:['G1','不得互照','设备不能出现在另一台的光里'],
+    E2:['E2','短射程','每台每个方向只照 '+L.range+' 格'],
+  };
+  if(raw.newMech)M[raw.newMech][1]+=' · 新';
+  const base=['<span><b>基础</b> '+T.device+'照亮自身并四向发光，遇'+T.block+'停止</span>'];
+  $('lvmechs').innerHTML=base.concat(raw.mech.map(m=>M[m]?'<span><b>'+M[m][0]+' '+M[m][1]+'</b>：'+M[m][2]+'</span>':'')).join('');
+  const bw=$('bw'),maxW=Math.min(window.innerWidth-40,416),cell=Math.floor((Math.min(maxW,Math.max(260,window.innerHeight-360)*L.W/L.H)-(L.W-1)*3)/L.W);
+  const cs=Math.max(30,Math.min(72,cell));
+  bw.style.width=(cs*L.W+(L.W-1)*3)+'px';
+  $('board').style.gridTemplateColumns='repeat('+L.W+','+cs+'px)';
+  $('board').innerHTML=L.cells.map((_,i)=>'<div class="cell" data-cell="'+i+'"></div>').join('');
+  render();
+}
+function svgMirror(x){return x==='/'?'<svg viewBox="0 0 40 40"><path d="M6 34L34 6" stroke="#5f6f8a" stroke-width="5" stroke-linecap="round"/></svg>':'<svg viewBox="0 0 40 40"><path d="M6 6L34 34" stroke="#5f6f8a" stroke-width="5" stroke-linecap="round"/></svg>';}
+const SVG_NO='<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="12" fill="none" stroke="#c9564a" stroke-width="3"/><path d="M12 28L28 12" stroke="#c9564a" stroke-width="3"/></svg>';
+const SVG_GLASS='<svg viewBox="0 0 40 40"><rect x="9" y="9" width="22" height="22" rx="3" fill="rgba(140,190,225,.35)" stroke="#5f97bf" stroke-width="2"/><path d="M13 27l14-14" stroke="#fff" stroke-width="2"/></svg>';
+function render(){
+  const L=cur.L,S=SK[themeOf().key],ev=evalBoard(L,cur.placed);cur.ev=ev;
+  const conflictCells=new Set();ev.pairs.forEach(([a,b])=>{conflictCells.add(a);conflictCells.add(b);});
+  const pv=cur.pv,pvTr=pv!=null&&!cur.placed.includes(pv)&&L.cells[pv]==='.'?trace(L,pv):null;
+  const colorOf=p=>COL[cur.placed.indexOf(p)%COL.length];
+  const cells=$('board').children;
+  for(let i=0;i<L.cells.length;i++){
+    const x=L.cells[i],el=cells[i],cls=['cell'];let h='';
+    const isWet=ev.wet.has(i);
+    if(x==='#'){cls.push('wall');h=S.obstacle?'<div class="obs">'+S.obstacle+'</div>':'';}
+    else if(x==='.'){if(isWet)cls.push('wet');h=S.terrain||'';}
+    else if(x==='N'){cls.push('noplace');if(isWet)cls.push('wet');h='<div class="ico">'+SVG_GLASS+'</div><div class="lbl">禁放</div>';}
+    else if(x==='D'){cls.push('double');const n=ev.src[i].size;if(n>=2)cls.push('full');const ss=[...ev.src[i]];h='<div class="slots">'+[0,1].map(k=>'<i style="'+(ss[k]!==undefined?'background:'+colorOf(ss[k])+';border-color:'+colorOf(ss[k]):'')+'"></i>').join('')+'</div><div class="lbl num">双照 '+Math.min(n,2)+'/2</div>';}
+    else if(x==='P'){cls.push('protect');if(ev.viol.has(i))cls.push('hit');h='<div class="ico">'+SVG_NO+'</div><div class="lbl">'+(ev.viol.has(i)?'违规':'禁覆盖')+'</div>';}
+    else if(x==='/'||x==='\\'){cls.push('mirror');h='<div class="ico">'+svgMirror(x)+'</div>';}
+    if(cur.placed.includes(i)){h+='<div class="dev" style="--dc:'+colorOf(i)+'">'+(S.emitter||'')+(L.range?'<span class="rng">'+L.range+'</span>':'')+'</div>';if(conflictCells.has(i))cls.push('conflict');}
+    if(pvTr){if(i===pv)cls.push('pv');else if(pvTr.hits.has(i)&&L.need[i]&&ev.src[i].size<L.need[i])cls.push('pvnew');}
+    if(cur.hintCell===i)cls.push('hintcell');if(cur.hintWrong===i)cls.push('hintwrong');
+    let gno='';
+    if(cur.cand&&cur.cand.rooms){const rk=cur.cand.rooms.findIndex(r=>r.includes(i));if(rk>=0)h='<i class="room r'+rk+'"></i>'+h;}
+    if(cur.cand){
+      const gi=cur.cand.groups?cur.cand.groups.findIndex(g=>g.includes(i)):-1;
+      if(gi>=0)cls.push('cg'+gi);
+      const ti=cur.cand.gt?cur.cand.gt.indexOf(i):-1;
+      if(ti>=0)gno='<span class="gno gt'+ti+'">'+NUM[ti]+'</span>';
+      if(cur.cand.pick&&cur.cand.pick.includes(i))cls.push('pick');
+      else if(cur.cand.ok.includes(i))cls.push('cand');
+      if(cur.cand.x.includes(i))cls.push('cand','candx');
+    }
+    if(cur.tut&&cur.tut.focus!=null&&(cur.tut.action==='tap'||cur.tut.action==='press')&&cur.tut.focus.includes(i))cls.push('focus');
+    el.className=cls.join(' ');el.innerHTML=h+gno;
+  }
+  $('board').classList.toggle('locked',!!(cur.tut&&cur.tut.lock));
+  drawBeams(ev,pvTr?{s:pv,tr:pvTr}:null);
+  // HUD
+  $('h-dev').textContent=cur.placed.length+'/'+L.raw.kStar;
+  $('h-undo').textContent=cur.tut?'不扣':cur.undoLeft;$('hud-undo').classList.toggle('low',cur.undoLeft<=1);
+  $('h-cov').textContent=ev.covered+'/'+ev.total;
+  $('btn-undo').disabled=!cur.hist.length||cur.undoLeft<=0||cur.status!=='play';
+  $('btn-hint').disabled=cur.status!=='play';
+  statusLine();
+}
+function drawBeams(ev,pv){
+  const L=cur.L,svg=$('beams'),bw=$('bw'),cs=bw.clientWidth/L.W;
+  const cellEl=$('board').children[0];if(!cellEl)return;
+  const step=(bw.clientWidth+3)/L.W; // cell + gap
+  const cx=i=>(i%L.W)*step+(step-3)/2,cy=i=>Math.floor(i/L.W)*step+(step-3)/2;
+  svg.setAttribute('viewBox','0 0 '+bw.clientWidth+' '+bw.clientHeight);
+  let out='';
+  const rayPts=(s,ray,upto)=>{const pts=[[cx(s),cy(s)]];for(const j of ray.path){pts.push([cx(j),cy(j)]);if(j===upto)break;}return pts;};
+  const line=(pts,st)=>'<polyline points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'" fill="none" '+st+'/>';
+  cur.placed.forEach((s,k)=>{
+    const col=COL[k%COL.length];
+    for(const ray of trace(L,s).rays){if(!ray.path.length)continue;const pts=rayPts(s,ray);out+=line(pts,'stroke="'+col+'" stroke-width="3" stroke-opacity=".55" stroke-linecap="round" stroke-linejoin="round"');
+      if(ray.end==='range'){const [x,y]=pts[pts.length-1],[dr,dc]=ray.dir;const ex=x+dc*step*0.42,ey=y+dr*step*0.42;out+='<path d="M'+(ex-dr*7)+' '+(ey-dc*7)+'L'+(ex+dr*7)+' '+(ey+dc*7)+'" stroke="'+col+'" stroke-width="3" stroke-linecap="round"/>';}}
+  });
+  ev.pairs.forEach(([a,b])=>{for(const ray of trace(L,a).rays)if(ray.path.includes(b)){out+=line(rayPts(a,ray,b),'stroke="#b4392f" stroke-width="3.5" stroke-dasharray="6 5" stroke-linecap="round"');}});
+  if(pv){for(const ray of pv.tr.rays){if(!ray.path.length)continue;out+=line(rayPts(pv.s,ray),'stroke="#223038" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"');}
+    out+='<circle cx="'+cx(pv.s)+'" cy="'+cy(pv.s)+'" r="'+(step*0.22)+'" fill="none" stroke="#223038" stroke-width="2.5" stroke-dasharray="4 3"/>';}
+  svg.innerHTML=out;
+}
+function statusLine(){
+  const L=cur.L,ev=cur.ev,T=themeOf(),st=$('status');
+  if(cur.msg){st.className='status '+(cur.msgCls||'info');st.innerHTML=cur.msg;return;}
+  const parts=[];let cls='';
+  if(ev.viol.size){cls='bad';parts.push('C1 违规：'+[...ev.viol].map(i=>coordOf(i,L.W)).join('、')+' 被照到了');}
+  if(ev.pairs.length){cls='bad';const seen=new Set(),ps=[];ev.pairs.forEach(([a,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(!seen.has(k)){seen.add(k);ps.push(coordOf(a,L.W)+' 与 '+coordOf(b,L.W));}});parts.push('G1 互照：'+ps.join('；'));}
+  ev.doubles.forEach(d=>{if(d.n<2&&cur.placed.length)parts.push('双照格 '+coordOf(d.t,L.W)+' '+Math.min(d.n,2)+'/2');});
+  if(!parts.length){
+    if(!cur.placed.length)parts.push('按住任意格子预览覆盖范围，点一下放置。');
+    else if(cur.placed.length>=L.raw.kStar&&!ev.won)parts.push('设备已用完但还有 '+(ev.total-ev.covered)+' 格没完成：需要收回调整（剩余撤回 '+cur.undoLeft+' 次）。');
+    else parts.push('还差 '+(ev.total-ev.covered)+' 格；剩余设备 '+(L.raw.kStar-cur.placed.length)+' 台。');
+  }else if(cur.placed.length>=L.raw.kStar)parts.push('需要收回调整（剩余撤回 '+cur.undoLeft+' 次）');
+  st.className='status '+cls;st.innerHTML=parts.join('；');
+}
+function flash(msg,cls){cur.msg=msg;cur.msgCls=cls;statusLine();clearTimeout(cur.msgT);cur.msgT=setTimeout(()=>{if(cur){cur.msg=null;statusLine();}},2600);}
+
+/* ───────── 操作 ───────── */
+function cellRule(i){
+  const L=cur.L,x=L.cells[i],T=themeOf();
+  return {'#':T.block+'：挡住光线。','N':'C3 '+(short(T.C3)||'不可放置格')+'：不能放设备，但它本身要被照到。','D':'C2 '+(short(T.C2)||'双照格')+'：需要两台不同设备照到（同一台的多条光只算 1 台）。','P':'C1 '+(short(T.C1)||'禁覆盖格')+'：不能被任何光照到；光会穿过它。','/':'R1 '+(short(T.R1)||'反射格')+'：光线碰到会转 90°，不能放设备。','\\':'R1 '+(short(T.R1)||'反射格')+'：光线碰到会转 90°，不能放设备。'}[x]||'';
+}
+function tap(i){
+  if(cur.status!=='play')return;
+  const L=cur.L,x=L.cells[i];
+  if(cur.tut&&cur.tut.lock){if(!cur.tut.focus||!cur.tut.focus.includes(i)||cur.tut.action!=='tap')return;}
+  if(cur.tut&&cur.tut.action==='tap'&&!cur.tut.focus.includes(i))return;
+  cur.hintCell=null;cur.hintWrong=null;cur.cand=null;
+  if(cur.placed.includes(i)){
+    if(cur.tut&&cur.tut.action!=='free')return;
+    if(cur.undoLeft<=0){flash('撤回次数已用完，不能再收回设备。','bad');return;}
+    cur.placed=cur.placed.filter(p=>p!==i);cur.hist.push({t:'remove',c:i});spendUndo();
+    render();afterMove();return;
+  }
+  if(x!=='.'){flash(cellRule(i)||'这里不能放设备。','info');return;}
+  if(cur.placed.length>=L.raw.kStar){flash('设备已用完：先点一台已放的设备收回（消耗 1 次撤回）。','bad');return;}
+  cur.placed.push(i);cur.hist.push({t:'place',c:i});cur.places++;
+  render();afterMove();
+  if(cur.tut)tutAfterTap(i);
+}
+function spendUndo(){if(cur.tut)return;cur.undoLeft--;cur.undoUsed++;}
+function undo(){
+  if(cur.status!=='play'||!cur.hist.length||cur.undoLeft<=0)return;
+  const h=cur.hist.pop();
+  if(h.t==='place')cur.placed=cur.placed.filter(p=>p!==h.c);else cur.placed.push(h.c);
+  spendUndo();cur.hintCell=null;cur.hintWrong=null;cur.cand=null;render();afterMove();
+}
+function afterMove(){
+  const L=cur.L,ev=cur.ev;
+  if(ev.won){finish(true);return;}
+  if(cur.placed.length>=L.raw.kStar&&cur.undoLeft<=0&&!cur.tut){finish(false,'撤回次数用完，设备也已摆满，无法再调整。');}
+}
+function finish(win,reason){
+  cur.status=win?'won':'failed';
+  const sec=Math.round((Date.now()-cur.t0)/1000);
+  if(win){cleared[cur.i]=true;if(!isFree(cur.i)){stamina=Math.min(CFG.max,stamina+CFG.refund);tickStamina();}if(cur.tut)endTut();}
+  const rec={id:cur.L.raw.id,tier:cur.L.raw.tier,result:win?'通关':'失败',sec,places:cur.places,undoUsed:cur.undoUsed,hints:cur.hints,rating:null};
+  records.push(rec);cur.rec=rec;render();save();
+  setTimeout(()=>resultDialog(win,reason),win?380:120);
+}
+
+/* ───────── 结果弹窗 ───────── */
+function chainHTML(raw){
+  return '<ol class="chain">'+raw.steps.map(s=>{const [n,c]=STEPNAME[s.tier];const why=s.tier==='G'?(s.cands+' 选 1，猜错最多耗 '+s.worstCost+' 次撤回'):s.why.join('；').replace('路口推理：','').replace('预算对账：','').replace('区域对账：','').replace('缺一台对账：','');return '<li><span class="tg '+c+'">'+n+'</span>先看 '+LC(s.target)+' → 放 <b>'+s.place.map(LC).join('、')+'</b><br><span style="color:var(--muted)">'+why+'</span></li>';}).join('')+'</ol>';
+}
+function metricsHTML(raw){
+  const m=raw.metrics,c=m.count,parts=Object.entries(c).filter(([k,v])=>v).map(([k,v])=>STEPNAME[k][0]+'×'+v).join('、');
+  return '<table><tr><th>档位</th><td>'+raw.tier+'</td><th>模型档位</th><td>'+(raw.tierCalc||'—')+'</td></tr><tr><th>本关重点</th><td colspan="3">'+raw.layer+'（推理链第 '+m.focusStep+' 步）</td></tr><tr><th>推理步</th><td colspan="3">'+parts+'</td></tr><tr><th>路口陷阱</th><td>'+(m.intuition?m.intuition.strong:0)+' 处</td><th>需尝试</th><td>'+m.guesses+' 次</td></tr></table><p class="tip">“模型档位”按路口直觉模型算：只看路口直觉会不会被带错，不看对账本身难不难。你的体感和它不一致时，正好用来校准。</p>';
+}
+function rateRow(){return '<p style="margin-top:10px"><b>你的感受：</b></p><div class="row" id="rate">'+['太简单','刚好','有点难','太难'].map(r=>'<button data-rate="'+r+'">'+r+'</button>').join('')+'</div>';}
+function resultDialog(win,reason){
+  const raw=cur.L.raw,T=themeOf(),r=cur.rec;
+  let h='<h2>'+(win?T.finish:'未能完成')+'</h2>';
+  h+='<p>'+(win?'用时 <b class="num">'+r.sec+'s</b>，放置 '+r.places+' 次，撤回 '+r.undoUsed+' 次，提示 '+r.hints+' 次。'+(isFree(cur.i)?'':'体力返还 '+CFG.refund+'。'):(reason||'')+' 本局体力不返还。')+'</p>';
+  h+=rateRow();
+  if(win){h+='<p style="margin-top:12px"><b>参考推理链</b>（生成器按人的推理方式求解）</p>'+chainHTML(raw)+metricsHTML(raw);}
+  else h+='<details style="margin-top:10px"><summary style="font-size:13px;cursor:pointer">查看推理链（会剧透）</summary>'+chainHTML(raw)+metricsHTML(raw)+'</details>';
+  const next=cur.i+1<LV.length;
+  h+='<div class="row">'+(win&&next?'<button class="pri" data-act="next">下一关</button>':'')+'<button '+(win?'':'class="pri"')+' data-act="restart">'+(win?'再玩':'重开')+(isFree(cur.i)?'':' -'+CFG.cost+'体力')+'</button><button data-act="menu">选关</button></div>';
+  openDlg(h);
+  $('dlgbody').querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>{r.rating=b.dataset.rate;save();$('dlgbody').querySelectorAll('[data-rate]').forEach(x=>x.classList.toggle('on',x===b));});
+  $('dlgbody').querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act,i=cur.i;closeDlg();if(a==='next')startLevel(i+1);else if(a==='restart')startLevel(i,true);else showMenu();});
+}
+function openDlg(h){$('dlgbody').innerHTML=h;if(!$('dlg').open)$('dlg').showModal();}
+function closeDlg(){if($('dlg').open)$('dlg').close();}
+function openNoStamina(i){
+  tickStamina();const s=regenAt?Math.ceil((regenAt-Date.now())/1000):0;
+  openDlg('<h2>体力不足</h2><p>开局需要 '+CFG.cost+' 体力，当前 '+stamina+'。每 '+Math.round(CFG.regenSec/60*10)/10+' 分钟恢复 1 点，下一点约 '+s+' 秒后。</p><p class="tip">体验用：可在“后台”里直接回满。</p><div class="row"><button class="pri" data-x="fill">回满体力（调试）</button><button data-x="close">返回</button></div>');
+  $('dlgbody').querySelector('[data-x=fill]').onclick=()=>{stamina=CFG.max;regenAt=null;tickStamina();save();closeDlg();startLevel(i);};
+  $('dlgbody').querySelector('[data-x=close]').onclick=closeDlg;
+}
+
+/* ───────── 推理讲解（提示与新手引导共用） ───────── */
+const C=i=>coordOf(i,cur.L.W),CL=a=>a.map(C).join('、');
+function coverers(t,placed){
+  const L=cur.L,out={ok:[],c1:[],g1:[],all:[]};
+  L.cells.forEach((x,s)=>{if(x!=='.'||placed.includes(s))return;const tr=trace(L,s);if(!tr.hits.has(t))return;out.all.push(s);
+    if([...tr.hits].some(h=>L.cells[h]==='P'))out.c1.push(s);
+    else if(L.g1&&placed.some(p=>tr.hits.has(p)||trace(L,p).hits.has(s)))out.g1.push(s);
+    else out.ok.push(s);});
+  return out;
+}
+function need(placed){const ev=evalBoard(cur.L,placed),L=cur.L;return L.targets.filter(t=>ev.src[t].size<L.need[t]).map(t=>({t,d:L.need[t]-ev.src[t].size}));}
+const NUM='①②③④⑤⑥⑦⑧⑨';
+function viaNote(p,t){
+  const L=cur.L,T=themeOf(),mn=short(T.R1)||'镜子';
+  for(const ray of trace(L,p).rays){const k=ray.path.indexOf(t);if(k<0)continue;
+    const ms=ray.path.slice(0,k).filter(j=>L.cells[j]==='/'||L.cells[j]==='\\');
+    if(ms.length)return C(p)+' 的光经 '+CL(ms)+' 的'+mn+'转向后照到 '+C(t);}
+  return '';
+}
+const tname=t=>{const x=cur.L.cells[t];return x==='D'?'双照格 '+C(t):x==='N'?C(t)+'（'+(short(themeOf().C3)||'不可放置格')+'）':C(t);};
+function explain(step,placed){
+  const L=cur.L,T=themeOf(),t=step.t,ps=step.p,cv=coverers(t,placed),dev=T.device;
+  const tn=L.cells[t]==='D'?'双照格 '+C(t):L.cells[t]==='N'?C(t)+'（不可放置）':C(t);
+  let text='',mark={ok:cv.ok,x:cv.c1.concat(cv.g1)};
+  if(step.tier==='T1'||step.tier==='T2'){
+    if(step.why.join('').includes('C2')){text='<b>'+tn+'</b> 需要两台不同'+dev+'，而能照到它的位置正好只剩 <b>'+CL(cv.ok)+'</b> → 两处都要放。';}
+    else if(cv.ok.length<=1){text='能照到 <b>'+tn+'</b> 的位置只有 <b>'+CL(ps)+'</b> → 只能放这里。';}
+    else text='<b>'+tn+'</b> 是'+(step.tier==='T1'?'明显':'隐蔽')+'死角：能照到它的只有 <b>'+CL(cv.ok)+'</b> 这 '+cv.ok.length+' 处。<b>'+C(ps[0])+'</b> 除了照到它，还能照到更多格子 → 放 '+C(ps[0])+' 更划算。'+(step.tier==='T2'&&step.why.join('').includes('反射')?'（它只能靠反射光照到）':'');
+  }else if(step.tier==='T3'){
+    const parts=[];if(cv.c1.length)parts.push('<b>'+CL(cv.c1)+'</b> 会照到禁覆盖格');if(cv.g1.length)parts.push('<b>'+CL(cv.g1)+'</b> 会和已放的'+dev+'互相照到');
+    const via=viaNote(ps[0],t);text='能照到 <b>'+tn+'</b> 的位置有 '+cv.all.length+' 处，其中 '+parts.join('，')+'（红叉）→ 只剩 <b>'+CL(ps)+'</b>。'+(via?'（'+via+'）':'');
+  }else if(step.tier==='D'){
+    const via=viaNote(ps[0],t);text='能照到 <b>'+tn+'</b> 的位置有 '+cv.ok.length+' 处（蓝框）。<b>'+C(ps[0])+'</b> 照到的格子包含了其余位置能照到的全部 → 这是“路口”，放这里最划算。'+(via?'（'+via+'）':'');
+  }else if(step.tier==='B'){
+    // 分组直接用生成器求解器记录的分组，保证讲解与关卡验证的推理一致
+    const left=L.raw.kStar-placed.length,groups=step.groups||[];
+    const inG=c=>groups.findIndex(g=>g.cells.includes(c));
+    const out=cv.ok.filter(c=>inG(c)<0);
+    const nm=groups.map((g,k)=>'<span class="gt'+k+'">'+NUM[k]+'</span>'+C(g.t)+(g.d>1?'（双照，需 '+g.d+' 台）':'')).join(' ');
+    const mir=c=>{const v=viaNote(c,t);return v?'，光经 '+v.split(' 的光经 ')[1].split(' 的')[0]+' 转向':'';};
+    const pick=ps.map(c=>'<b>'+C(c)+'</b>（第'+NUM[inG(c)]+'组'+mir(c)+'）').join('、');
+    text='还剩 <b>'+left+'</b> 台。'+nm+' 这 '+groups.length+' 格各自的照亮位置（同色框）<b>互不重叠</b>，加起来正好要 '+left+' 台 → 每组必须'+(groups.some(g=>g.d>1)?'放够台数':'放一台')+'，<b>组外的位置都不能放</b>。<br>'+
+      '金框 <b>'+tn+'</b> 的照亮位置里，只有 '+pick+' 在组内'+(out.length?'，其余'+(out.includes(t)?'（包括 '+C(t)+' 自己）':'')+'都在组外（红叉）':'')+' → 放 <b>'+CL(ps)+'</b>。';
+    mark={ok:[],x:out.filter(c=>c!==t),groups:groups.map(g=>g.cells),gt:groups.map(g=>g.t)};
+  }else if(step.tier==='M'){
+    const left=L.raw.kStar-placed.length,groups=step.groups||[],x=ps[0];
+    const nm=groups.map((g,k)=>'<span class="gt'+k+'">'+NUM[k]+'</span>'+C(g.t)).join(' ');
+    const two=groups.map((g,k)=>g.cells.includes(x)?k:-1).filter(k=>k>=0);
+    text='还剩 <b>'+left+'</b> 台，但 '+nm+' 这 <b>'+groups.length+'</b> 格都还没照到（同色框是各自的照亮位置），比台数多 1 格。<br>'+
+      '在这些照亮位置里，<b>只有 '+C(x)+'</b> 能同时照到其中两格（'+two.map(k=>'<span class="gt'+k+'">'+NUM[k]+'</span>'+C(groups[k].t)).join(' 和 ')+'），其余位置每个最多照到 1 格。'+
+      '如果不放 '+C(x)+'，'+left+' 台最多照 '+left+' 格，照不全这 '+groups.length+' 格 → <b>'+C(x)+' 必放</b>。';
+    mark={ok:[],x:[],groups:groups.map(g=>g.cells),gt:groups.map(g=>g.t)};
+  }else if(step.tier==='R'){
+    const left=L.raw.kStar-placed.length,groups=step.groups||[],rooms=step.rooms||[];
+    const cx=r=>r.cells.reduce((a,c)=>a+c%L.W,0)/r.cells.length,cy=r=>r.cells.reduce((a,c)=>a+Math.floor(c/L.W),0)/r.cells.length;
+    const horiz=rooms.length===2&&Math.abs(cx(rooms[0])-cx(rooms[1]))>=Math.abs(cy(rooms[0])-cy(rooms[1]));
+    const order=rooms.map((r,k)=>k).sort((a,b)=>horiz?cx(rooms[a])-cx(rooms[b]):cy(rooms[a])-cy(rooms[b]));
+    const RN=['A','B','C'],rname=k=>{const pos=order.indexOf(k);return '<span class="rm'+RN[k]+'">'+(rooms.length===2?(horiz?['左区','右区']:['上区','下区'])[pos]:'区域'+'甲乙丙'[pos])+'</span>';};
+    const inG=c=>groups.findIndex(g=>g.cells.includes(c));
+    const out=cv.ok.filter(c=>inG(c)<0);
+    const per=order.map(k=>{const gs=groups.map((g,j)=>[g,j]).filter(([g])=>g.room===k);
+      return rname(k)+' '+gs.map(([g,j])=>'<span class="gt'+j+'">'+NUM[j]+'</span>'+C(g.t)).join(' ')+(gs.length>1?' 照亮位置互不重叠':'')+' → 至少 <b>'+rooms[k].lb+'</b> 台';}).join('；');
+    const tr=rooms[step.room];
+    text='整排'+T.block+'把棋盘隔成 '+rooms.length+' 个区域（斜纹），光过不去。还剩 <b>'+left+'</b> 台：'+per+'。<br>'+
+      order.map(k=>rooms[k].lb).join(' + ')+' = '+left+'，正好等于剩余台数 → <b>每个区域只能放最少台数</b>，'+rname(step.room)+'的 '+tr.lb+' 台都得落在本区的同色框里。<br>'+
+      (step.mode==='last'?rname(step.room)+'只剩 1 台，而金框 <b>'+tn+'</b> 和区内其他没照到的格子要一起照全 → 只有 <b>'+CL(ps)+'</b> 做得到。':
+      '金框 <b>'+tn+'</b> 在'+rname(step.room)+'，它的照亮位置里只有 <b>'+CL(ps)+'</b> 在同色框内'+(out.length?'，其余'+(out.includes(t)?'（包括 '+C(t)+' 自己）':'')+'都在框外（红叉）':'')+' → 放 <b>'+CL(ps)+'</b>。');
+    mark={ok:[],x:out.filter(c=>c!==t),groups:groups.map(g=>g.cells),gt:groups.map(g=>g.t),rooms:rooms.map(r=>r.cells)};
+  }else if(step.tier==='T4'){
+    const n=need(placed).length;text='只剩最后一台：能同时补齐剩下 '+n+' 格的位置只有 <b>'+CL(ps)+'</b>。';
+  }else if(step.tier==='T5'){
+    const others=cv.ok.filter(s=>!ps.includes(s));text='<b>'+tn+'</b> 还剩 '+CL(cv.ok)+' 可选。假设放 '+CL(others)+'，往下推会出现矛盾（剩下的格子照不全或违规）→ 只能放 <b>'+CL(ps)+'</b>。';
+  }else{
+    text='这一步没有直接的线索：<b>'+tn+'</b> 有 '+cv.ok.length+' 处可选（'+CL(cv.ok)+'），需要尝试；正确的是 <b>'+CL(ps)+'</b>。';
+  }
+  // 路口陷阱：本步正确位置恰好是“路口直觉”会选错的地方 → 讲清为什么看起来更好的那格不对
+  const it=(L.raw.metrics&&L.raw.metrics.intuition)||{traps:[]},idx=s=>{const m=/([A-H])(\d)/.exec(s);return (Number(m[2])-1)*L.W+(m[1].charCodeAt(0)-65);};
+  const trap=it.traps.find(x=>x.strong&&ps.includes(idx(x.right))&&!placed.includes(idx(x.wrong)));
+  if(trap){const w=idx(trap.wrong),ev0=evalBoard(L,placed),gn=c=>[...trace(L,c).hits].filter(h=>L.need[h]&&ev0.src[h].size<L.need[h]).length,gw=gn(w),gp=gn(ps.find(c=>c===idx(trap.right)));text+='<br><b style="color:#b3531f">⚠ 路口陷阱</b>：'+(gw>gp?'<b>'+C(w)+'</b> 能新增照亮 '+gw+' 格，比 '+C(idx(trap.right))+' 的 '+gp+' 格更多，':'<b>'+C(w)+'</b> 看起来照得差不多，')+'像个好路口，但放在那里'+(trap.undo>1?'，再往下放 '+(trap.undo-1)+' 台左右就会':'会马上')+'出现照不到的格子（要收回 '+trap.undo+' 台）。'+(trap.mirror?'这里靠的是镜子把光拐过去，容易被忽略。':'');mark.x=mark.x.concat([w]);}
+  mark.pick=ps;return {text,mark,target:t,place:ps};
+}
+function nextStep(){const raw=cur.L.raw;return raw.steps.find(s=>s.p.some(c=>!cur.placed.includes(c)));}
+function hint(){
+  if(cur.status!=='play'||cur.tut)return;
+  const L=cur.L,raw=L.raw,ans=new Set(raw.answer.map(a=>a.cell));
+  cur.hints++;cur.hintCell=null;cur.hintWrong=null;cur.cand=null;
+  const wrong=cur.placed.filter(p=>!ans.has(p));
+  if(wrong.length){
+    if(cur.hintStage===0){cur.hintStage=1;flash('当前布局里有'+themeOf().device+'不在正确位置上：这样摆无法完成。再点一次提示会标出来。','bad');}
+    else{cur.hintWrong=wrong[0];cur.hintStage=0;flash('红框这台放错了：'+C(wrong[0])+'。收回它（消耗 1 次撤回）。','bad');}
+    render();return;
+  }
+  const step=nextStep();if(!step){flash('全部设备都已就位。','ok');return;}
+  const [n]=STEPNAME[step.tier];
+  const Q={T1:'哪些位置能照到它？',T2:'哪些位置能照到它？注意镜子和双照格。',D:'哪些位置能照到它？哪一个照到的格子最多、能包含其他位置？',T3:'哪些位置能照到它？其中哪些会照到禁覆盖格、或和已放的设备互相照到？',
+    B:'还剩 '+(raw.kStar-cur.placed.length)+' 台。先找几个“只有少数位置能照到、而且彼此没有共同照亮位置”的格子，数一数它们和剩余设备数的关系。',
+    M:'还剩 '+(raw.kStar-cur.placed.length)+' 台。数一数还有几个“各自难照、彼此不相干”的格子——是不是比台数多 1 个？那就找能同时照到其中两格的位置。',
+    R:'还剩 '+(raw.kStar-cur.placed.length)+' 台。墙把棋盘隔成了几个区域：分别数每个区域最少要几台，加起来和剩余台数比一比。',T4:'只剩最后一台：哪个位置能把剩下的格子一次照全？',T5:'它还剩两三个位置可选，假设放其中一个，往下推会不会出问题？',G:'这一步没有直接线索，需要尝试。'};
+  if(cur.hintStage===0){cur.hintStage=1;cur.hintCell=step.t;flash('提示 1 · <b>'+n+'</b>：先看金框这格（'+C(step.t)+'）。'+Q[step.tier],'info');clearTimeout(cur.msgT);cur.msgT=setTimeout(()=>{if(cur){cur.msg=null;cur.hintCell=null;render();}},15000);}
+  else{cur.hintStage=0;let e=explain(step,cur.placed);
+    // 玩家提前放下了推理链后面的设备：对账用的分组已经变了，改用简短说明，避免数字对不上
+    const k0=raw.steps.indexOf(step),pre=new Set([].concat(...raw.steps.slice(0,k0).map(s=>s.p)).concat(step.p)),extra=cur.placed.filter(c=>!pre.has(c));
+    if(extra.length&&['B','M','R'].includes(step.tier))e={text:'这一步按推理顺序要用<b>'+n+'</b>；你已经提前放下了 '+CL(extra)+'（都是对的），对账的分组随之变化。现在直接看金框 '+C(step.t)+'：放 <b>'+CL(step.p)+'</b>。想看完整的对账过程，可以重开本关按顺序推。',mark:{ok:[],x:[],pick:step.p}};
+    cur.hintCell=step.t;cur.cand=e.mark;flash('提示 2 · <b>'+n+'</b>：'+e.text,'info');requestAnimationFrame(()=>{const r=$('status').getBoundingClientRect(),b=document.querySelector('.actions').getBoundingClientRect();if(b.bottom>innerHeight)window.scrollBy({top:b.bottom-innerHeight+8,behavior:'smooth'});});clearTimeout(cur.msgT);cur.msgT=setTimeout(()=>{if(cur){cur.msg=null;cur.cand=null;cur.hintCell=null;render();}},30000);}
+  render();
+}
+
+/* ───────── 新手引导（第 1 关：死角格；第 2 关：机制排除 + 路口推理） ───────── */
+function startTutorial(kind){
+  const L=cur.L,T=themeOf(),raw=L.raw,st=raw.steps,dev=T.device;
+  const steps=[];
+  const guide=(s,lead,pressFirst)=>{
+    const e=explain(s,[].concat(...st.slice(0,st.indexOf(s)).map(x=>x.p)));
+    steps.push({text:lead+e.text,focus:[s.t].concat(e.mark.ok,e.mark.x),cand:e.mark,hl:s.t,action:'next'});
+    if(pressFirst)steps.push({text:'<b>按住 '+C(s.p[0])+' 不松手</b>，预览它能照到哪些格子（虚线、斜纹）。',focus:[s.p[0]],action:'press',hl:s.t});
+    s.p.forEach(c=>steps.push({text:'点一下 <b>'+C(c)+'</b> 放下'+dev+'。',focus:[c],action:'tap',hl:s.t}));
+  };
+  if(kind==='budget'){
+    steps.push({text:'<b>本关学习：预算对账。</b>目标仍是用 '+raw.kStar+' 台'+dev+T.verb+'全部'+T.target+'；'+raw.kStar+' 台是<b>刚好够</b>的最少台数。引导期间不消耗撤回。<br>开局照常：<b>先找死角格</b>。',focus:null,action:'next'});
+    let k=0;
+    for(;k<st.length&&st[k].tier!=='B';k++)guide(st[k],k?'又一个死角：':'',false);
+    const b=st[k];
+    if(b){
+      const placed=[].concat(...st.slice(0,k).map(x=>x.p)),left=raw.kStar-placed.length,gs=b.groups;
+      const nm=gs.map((g,j)=>'<span class="gt'+j+'">'+NUM[j]+'</span><b>'+C(g.t)+'</b>（能照到它的只有 '+CL(g.cells)+'）').join('，');
+      const gm={ok:[],x:[],groups:gs.map(g=>g.cells),gt:gs.map(g=>g.t)};
+      steps.push({text:'死角处理完了，还剩 <b>'+left+'</b> 台。剩下的格子里，找<b>最难照</b>的几个：'+nm+'。<br>看同色框：两组位置<b>没有一个重叠</b>——任何一台'+dev+'都不可能同时照到它们俩。',focus:null,cand:gm,action:'next'});
+      steps.push({text:'所以这 '+gs.length+' 格<b>每格都要单独花 1 台</b>，一共 '+gs.length+' 台，正好等于剩下的 '+left+' 台。<br>结论：<b>剩下的每台都必须放在同色框里，框外的位置一律不能放。</b>这就是“预算对账”——把剩余台数和“必须单独花钱的格子”对一对账。',focus:null,cand:gm,action:'next'});
+      const e=explain(b,placed);
+      steps.push({text:'用这个结论看金框 <b>'+C(b.t)+'</b>：它还没照到，能照到它的位置里，只有 <b>'+CL(b.p)+'</b> 在同色框内，其余都在框外（红叉）。点一下 <b>'+CL(b.p)+'</b> 放下'+dev+'。',focus:b.p.slice(),cand:e.mark,hl:b.t,action:'tap'});
+      k++;
+    }
+    if(k<st.length)steps.push({text:'还剩最后 '+(raw.kStar-[].concat(...st.slice(0,k).map(x=>x.p)).length)+' 台：找一个能把剩下的格子一次照全的“路口”，自己试试。<br>记住：预算对账不是每关都要用——<b>当死角和路口都推不动时</b>，再数一数台数和难照格子能不能对上账。',focus:null,action:'free'});
+  }else if(kind==='deadcorner'){
+    steps.push({text:'<b>目标</b>：用 '+raw.kStar+' 台'+dev+T.verb+'全部'+T.target+'。'+dev+'照亮自己所在格，并向上下左右发光，遇到'+T.block+'就停。<br>引导期间不消耗撤回。',focus:null,action:'next'});
+    steps.push({text:'推理的第一步：<b>先找最难照到的格子——死角格</b>。它被墙和边界围住，能照到它的位置只有 1–2 个，所以几乎可以确定放哪。',focus:null,action:'next'});
+    guide(st[0],'',true);
+    st.slice(1).forEach((s,k)=>guide(s,'<b>已经照亮的格子不用再管。</b>剩下的格子里，又出现了新的死角：',false));
+  }else{
+    steps.push({text:'这一关学两种新推理。先复习：开局仍然先找<b>死角格</b>。',focus:null,action:'next'});
+    st.forEach((s,k)=>{
+      const lead=s.tier==='T3'?'<b>机制排除</b>：本关有<b>禁覆盖格</b>（不能被任何光照到，光会穿过它）。':s.tier==='D'?'<b>路口推理</b>：':'';
+      if(k===st.length-1&&s.tier==='D'){
+        const e=explain(s,[].concat(...st.slice(0,k).map(x=>x.p)));
+        steps.push({text:lead+'还剩最后一台。几个位置都能照到 <b>'+C(s.t)+'</b>（蓝框），找一个能把剩下的格子<b>一次全照到</b>的“路口”。自己试试，可以先按住预览。',focus:null,cand:{ok:e.mark.ok,x:[]},hl:s.t,action:'free'});
+      }else guide(s,lead,false);
+    });
+  }
+  if(steps[steps.length-1].action!=='free')steps.push({text:'全部照亮就通关。正式关卡里，收回设备和撤销都消耗撤回次数，每关 '+CFG.undo+' 次。',focus:null,action:'free'});
+  cur.tut={k:0,steps,kind};showTut();
+}
+function showTut(){
+  const t=cur.tut;if(!t)return;const s=t.steps[t.k];
+  t.focus=s.focus;t.action=s.action;t.lock=s.action!=='free';t.free=s.action==='free';
+  cur.cand=s.cand||null;cur.hintCell=s.hl!=null?s.hl:null;
+  $('coachtext').innerHTML=s.text;
+  $('coachnext').classList.toggle('hidden',!(s.action==='next'||s.action==='free'));$('coachnext').textContent=s.action==='free'?'知道了':'下一步';
+  const box=$('coachbox');box.classList.add('on');
+  render();
+  $('app').style.paddingBottom=(box.offsetHeight+24)+'px';
+}
+function tutNext(){const t=cur.tut;if(!t)return;if(t.k>=t.steps.length-1){if(t.action==='free'){$('coachbox').classList.remove('on');cur.cand=null;render();}else endTut();return;}t.k++;showTut();}
+function endTut(){$('app').style.paddingBottom='';if(!cur||!cur.tut)return;tutDone[cur.L.raw.id]=true;save();cur.tut=null;cur.cand=null;cur.hintCell=null;$('coachbox').classList.remove('on');render();}
+function tutAfterTap(i){const t=cur.tut;if(!t)return;const s=t.steps[t.k];if(s.action==='tap'&&s.focus.includes(i))tutNext();else if(s.action==='free'&&cur.ev.won)endTut();}
+$('coachnext').onclick=tutNext;$('coachskip').onclick=endTut;
+
+/* ───────── 长按预览 ───────── */
+let press=null;
+$('board').addEventListener('pointerdown',e=>{
+  const el=e.target.closest('[data-cell]');if(!el||!cur||cur.status!=='play')return;
+  const i=Number(el.dataset.cell);
+  if(cur.tut&&cur.tut.lock&&!(cur.tut.focus&&cur.tut.focus.includes(i)&&cur.tut.action!=='next'))return;
+  e.preventDefault();
+  press={i,shown:false,id:e.pointerId,timer:setTimeout(()=>{press.shown=true;showPreview(i);},300)};
+});
+function endPress(e,fire){
+  if(!press)return;clearTimeout(press.timer);const p=press;press=null;
+  if(p.shown){cur.pv=null;cur.msg=null;render();if(cur.tut&&cur.tut.steps[cur.tut.k].action==='press'&&p.i===cur.tut.focus[0])tutNext();return;}
+  if(fire)tap(p.i);
+}
+$('board').addEventListener('pointerup',e=>endPress(e,true));
+$('board').addEventListener('pointercancel',e=>endPress(e,false));
+$('board').addEventListener('pointerleave',e=>endPress(e,false));
+$('board').addEventListener('contextmenu',e=>e.preventDefault());
+function showPreview(i){
+  const L=cur.L,x=L.cells[i];
+  if(cur.placed.includes(i)){cur.pv=null;cur.msg='这台已放下（彩色实线是它的覆盖范围）。点一下会收回，消耗 1 次撤回。';cur.msgCls='info';render();return;}
+  if(x!=='.'){cur.pv=null;cur.msg=cellRule(i);cur.msgCls='info';render();return;}
+  cur.pv=i;render();
+  const tr=trace(L,i),ev=cur.ev;let add=0;tr.hits.forEach(h=>{if(L.need[h]&&ev.src[h].size<L.need[h])add++;});
+  const warn=[];[...tr.hits].filter(h=>L.cells[h]==='P').forEach(h=>warn.push('会照到禁覆盖格 '+coordOf(h,L.W)));
+  if(L.g1){cur.placed.forEach(p=>{if(tr.hits.has(p))warn.push('会照到已放的 '+coordOf(p,L.W));if(trace(L,p).hits.has(i))warn.push('位于 '+coordOf(p,L.W)+' 的光里');});}
+  cur.msg='预览 '+coordOf(i,L.W)+'：新增覆盖 '+add+' 格'+(warn.length?'；<b style="color:var(--bad)">'+warn.join('；')+'</b>':'')+'。松手取消。';cur.msgCls=warn.length?'bad':'info';statusLine();
+}
+
+/* ───────── 选关 / 记录 / 后台 ───────── */
+function showMenu(){
+  cur=null;$('coachbox').classList.remove('on');$('app').dataset.theme='stage';
+  $('game').classList.add('hidden');$('menu').classList.remove('hidden');
+  let html='',prev=null;
+  LV.forEach((l,i)=>{const T=TH[l.theme];
+    if(l.theme!==prev){const seg=LV.filter((x,k)=>k>=i&&LV.slice(i,k+1).every(y=>y.theme===l.theme));html+='<div class="seg">'+T.name+' · 第 '+l.id+'–'+(l.id+seg.length-1)+' 关</div>';prev=l.theme;}
+    html+='<button class="lvbtn" data-lv="'+i+'"><span class="r1">第 '+l.id+' 关'+(l.newMech?' <span class="new">新 '+l.newMech+'</span>':'')+(l.tutorial?' <span class="new">引导</span>':'')+(cleared[i]?'<span class="done">✓</span>':'')+'</span><span class="r2">'+(CFG.showTier?'<span class="tier '+TIERCLS[l.tier]+'">'+l.tier+'</span> ':'')+(l.mech.join('+')||'基础')+' · '+l.w+'×'+l.h+' · '+l.kStar+' 台'+'</span><span class="lay">'+l.layer+'</span></button>';});
+  $('levels').innerHTML=html;
+  $('concepts').innerHTML=[
+    ['① 基础对账','2 组难照格，台数刚好 → 组外不能放（第 1 关引导）'],
+    ['② 交点对账','3 组，有的照亮位置经镜子拐弯（第 2 关）'],
+    ['③ 双照对账','双照格还差的那 1 台也算一笔账（第 3 关）'],
+    ['④ 互照对账','配合“不得互照”机制，本专题暂不做'],
+    ['⑤ 缺一台对账','剩 k 台却有 k+1 格 → 唯一能照两格的位置必放（第 4 关）'],
+    ['⑥ 区域对账','墙隔出区域，各区最少台数相加 = 剩余台数（第 5、6 关）'],
+  ].map(x=>'<div><b>'+x[0]+'</b>：'+x[1]+'</div>').join('');
+  $('levels').querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>startLevel(Number(b.dataset.lv)));
+  tickStamina();
+}
+function leaveGuard(fn){
+  if(cur&&cur.status==='play'&&(cur.placed.length||cur.hist.length)){
+    openDlg('<h2>放弃本局？</h2><p>离开会记为失败，'+(isFree(cur.i)?'':'已扣的 '+CFG.cost+' 体力不返还。')+'</p><div class="row"><button class="pri" data-x="y">放弃</button><button data-x="n">继续玩</button></div>');
+    $('dlgbody').querySelector('[data-x=y]').onclick=()=>{closeDlg();if(cur&&cur.tut)endTut();records.push({id:cur.L.raw.id,tier:cur.L.raw.tier,result:'放弃',sec:Math.round((Date.now()-cur.t0)/1000),places:cur.places,undoUsed:cur.undoUsed,hints:cur.hints,rating:null});fn();};
+    $('dlgbody').querySelector('[data-x=n]').onclick=closeDlg;
+  }else fn();
+}
+$('btn-levels').onclick=()=>leaveGuard(showMenu);
+$('btn-undo').onclick=undo;$('btn-hint').onclick=hint;
+$('btn-restart').onclick=()=>{if(!cur)return;const i=cur.i;leaveGuard(()=>startLevel(i,true));};
+$('btn-quit').onclick=()=>{if(!cur||cur.status!=='play')return;finish(false,'你主动放弃了本局。');};
+$('btn-log').onclick=()=>{
+  const lines=['关卡\t档位\t结果\t用时s\t放置\t撤回\t提示\t评价'].concat(records.map(r=>['L'+String(r.id).padStart(2,'0'),r.tier,r.result,r.sec,r.places,r.undoUsed,r.hints,r.rating||'-'].join('\t')));
+  const rows=records.map(r=>'<tr><td>L'+String(r.id).padStart(2,'0')+'</td><td>'+r.tier+'</td><td>'+r.result+'</td><td class="num">'+r.sec+'</td><td class="num">'+r.places+'</td><td class="num">'+r.undoUsed+'</td><td class="num">'+r.hints+'</td><td>'+(r.rating||'—')+'</td></tr>').join('');
+  openDlg('<h2>体验记录</h2><p class="tip">记录保存在本机浏览器。复制后直接发回即可。</p><div class="row" style="margin-top:0"><button id="clr">清空记录与进度</button></div><table><tr><th>关卡</th><th>档位</th><th>结果</th><th>用时</th><th>放置</th><th>撤回</th><th>提示</th><th>评价</th></tr>'+(rows||'<tr><td colspan="8">还没有记录</td></tr>')+'</table><textarea id="logtxt" readonly>'+lines.join('\n')+'</textarea><div class="row"><button class="pri" id="cp">复制</button><button id="cl">关闭</button></div>');
+  $('cp').onclick=()=>{const t=$('logtxt');t.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(t.value).then(()=>{$('cp').textContent='已复制';},()=>{$('cp').textContent=ok?'已复制':'请手动复制';});else $('cp').textContent=ok?'已复制':'请手动复制';};
+  $('cl').onclick=closeDlg;
+  $('clr').onclick=()=>{if(!confirm('清空全部记录与通关进度？'))return;records.length=0;for(const k in cleared)delete cleared[k];for(const k in tutDone)delete tutDone[k];save();closeDlg();showMenu();};
+};
+$('btn-admin').onclick=()=>{
+  const f=[['undo','每关撤回次数'],['newBonus','新机制关额外撤回'],['max','体力上限'],['cost','开局消耗'],['regenSec','恢复 1 点所需秒数'],['refund','通关返还'],['freeLevels','前 N 关免体力']];
+  openDlg('<h2>后台参数（体验用）</h2><p class="tip">修改后对下一局生效，并保存在本机。默认口径：撤回 5（新机制关 +2）、体力 50 / 开局 10 / 3 分钟回 1 / 通关返还 10、前 10 关免体力。</p><div class="form">'+f.map(([k,n])=>'<label for="cfg-'+k+'">'+n+'</label><input id="cfg-'+k+'" type="number" min="0" value="'+CFG[k]+'">').join('')+'<label for="cfg-st">当前体力</label><input id="cfg-st" type="number" min="0" value="'+stamina+'"><label for="cfg-tier">显示档位</label><input id="cfg-tier" type="checkbox" style="height:20px;width:20px" '+(CFG.showTier?'checked':'')+'></div><div class="row"><button class="pri" id="sv">保存</button><button id="fill">回满体力</button><button id="cx">关闭</button></div>');
+  $('sv').onclick=()=>{f.forEach(([k])=>{const v=Number($('cfg-'+k).value);if(Number.isFinite(v)&&v>=0)CFG[k]=Math.round(v);});CFG.regenSec=Math.max(1,CFG.regenSec);CFG.max=Math.max(1,CFG.max);stamina=Math.min(CFG.max,Math.max(0,Math.round(Number($('cfg-st').value)||0)));regenAt=null;CFG.showTier=$('cfg-tier').checked;tickStamina();save();closeDlg();if(!cur)showMenu();else $('lvtier').classList.toggle('hidden',!CFG.showTier);};
+  $('fill').onclick=()=>{stamina=CFG.max;regenAt=null;tickStamina();save();$('cfg-st').value=stamina;};
+  $('cx').onclick=closeDlg;
+};
+window.addEventListener('resize',()=>{if(cur)setupLevel();});
+$('dlg').addEventListener('cancel',e=>{if(cur&&cur.status!=='play'){e.preventDefault();}});
+
+/* ───────── 自检：每关参考解必须通关，且不能用更少设备 ───────── */
+window.FillItUp={
+  selfTest(){const res=LV.map(raw=>{const L=prep(raw);const ans=raw.answer.map(a=>a.cell);return {id:raw.id,won:evalBoard(L,ans).won,count:ans.length===raw.kStar};});return {pass:res.every(r=>r.won&&r.count),res};},
+  state:()=>cur&&{tutStep:cur.tut?cur.tut.steps[cur.tut.k].action:null,tutFocus:cur.tut?cur.tut.steps[cur.tut.k].focus:null,cand:cur.cand,msg:cur.msg,i:cur.i,placed:cur.placed.slice(),undoLeft:cur.undoLeft,undoUsed:cur.undoUsed,status:cur.status,won:cur.ev&&cur.ev.won,covered:cur.ev&&cur.ev.covered,total:cur.ev&&cur.ev.total,tut:cur.tut?cur.tut.k:null,pv:cur.pv},
+  stamina:()=>({stamina,cfg:Object.assign({},CFG)}),records:()=>records.slice(),levels:LV,
+};
+load();
+const st0=window.FillItUp.selfTest();if(!st0.pass)console.error('自检失败',st0);
+setInterval(save,15000);
+showMenu();
+</script>
+</body>
+</html>
